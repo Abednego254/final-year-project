@@ -1,0 +1,51 @@
+ABEDNEGO KAUME
+N11/3/0053/020
+Concept Paper: Uber-Like Platform for Farm-Ploughing Tractors
+1. Introduction
+Mechanized farming is crucial for increasing agricultural productivity (Alene & Coulibaly, 2009). However, in many rural areas of Kenya, smallholder farmers face challenges accessing tractors due to high costs, uneven distribution, and poor scheduling of available tractor services (Kenya National Bureau of Statistics [KNBS], 2020). Many tractors remain underutilized while farmers wait for help, causing inefficiency, delays in planting or harvesting, and reduced crop yields (Wang & Li, 2021).
+Currently, farmers often rely on informal arrangements to hire tractors, which are prone to miscommunication, lack of real-time tracking, and difficulty in verifying operators or payments (Laudon & Laudon, 2020). This results in both farmers and tractor owners losing time and money.
+There is a need for a digital platform that connects farmers with tractor operators efficiently, ensures proper scheduling, facilitates payments, tracks tractor location in real-time, and allows both parties to rate and review services. Such a system would improve service accessibility, optimize tractor utilization, and support better decision-making for both farmers and operators (Wang & Li, 2021).
+Rationale:
+Smallholder farmers need an easy way to access tractor services without delays (KNBS, 2020).
+Tractor owners need a platform to increase the utilization of their equipment (Alene & Coulibaly, 2009).
+A digital platform can automate scheduling, track services, and reduce mismanagement (Laudon & Laudon, 2020).
+The project will serve as a practical solution that combines technology with agricultural needs, demonstrating innovation in digital farm service delivery (Wang & Li, 2021).
+2. Aims and Objectives
+Aim:To develop a prototype digital platform that facilitates the booking, sharing, and optimal utilization of farm-ploughing tractor services for farmers and operators (Laudon & Laudon, 2020).
+Objectives:
+To design and implement a mobile application for farmers to book and track tractor services in real-time (Wang & Li, 2021).
+To develop a web-based dashboard for administrators to manage tractor services, monitor usage, and generate analytics (Laudon & Laudon, 2020).
+To implement features for digital payments, service ratings, and reviews (KNBS, 2020).
+To test the feasibility and usability of the platform among a sample of farmers and tractor operators (Alene & Coulibaly, 2009).
+To evaluate the potential impact of the system on service efficiency, scheduling, and resource utilization (Wang & Li, 2021).
+3. Conceptual Framework
+The study is guided by the concept of Digital Platform-Mediated Service Delivery, which combines elements of ride-hailing models (like Uber) with resource management in agriculture (Laudon & Laudon, 2020).
+Independent Variables: Tractor availability, operator verification, scheduling system, payment system (KNBS, 2020)
+Dependent Variables: Service efficiency, user satisfaction, tractor utilization, farmer accessibility (Alene & Coulibaly, 2009)
+Mediating Factors: Real-time location tracking, automated notifications, ratings and reviews (Wang & Li, 2021)
+Diagram (conceptual illustration):
+[Farmer Mobile App] --requests--> [Booking System / Firebase Backend] --notifies--> [Tractor Operator]
+           |                                         |
+       Tracks location                             Confirms job
+           |                                         |
+           v                                         v
+[Web Admin Dashboard] <---analytics & management--- [Service Logs & Payments]
+This framework shows how farmers’ requests flow through the system, how operators respond, and how admins monitor and manage all services (Laudon & Laudon, 2020).
+4. Method
+4.1 Proposed Source of Data
+Primary Data: Feedback from farmers and tractor operators using the prototype (Wang & Li, 2021).
+Secondary Data: Literature on mechanized farming challenges, farm service platforms, and digital solutions in agriculture (Alene & Coulibaly, 2009; KNBS, 2020).
+4.2 Method of Data Collection
+Questionnaires / Surveys: To collect farmers’ and operators’ opinions on usability, convenience, and efficiency (Wang & Li, 2021).
+Interviews: Informal interviews with a few operators and farmers for qualitative insights (Alene & Coulibaly, 2009).
+System Logs: Automatically collected data from the platform, such as booking frequency, tractor utilization, and payment completion rates (Laudon & Laudon, 2020).
+4.3 Method of Analysis
+Quantitative Analysis: Statistical summaries of booking data, usage patterns, and ratings (KNBS, 2020).
+Qualitative Analysis: Thematic analysis of feedback from surveys and interviews to identify usability issues, perceived benefits, and challenges (Wang & Li, 2021).
+5. Contribution to Knowledge / Originality
+This project is original and relevant because:
+It adapts digital ride-hailing concepts to the agricultural sector in Kenya (Laudon & Laudon, 2020).
+It demonstrates integration of mobile technology, real-time tracking, and digital payments for farm service delivery (Wang & Li, 2021).
+The system provides actionable insights for operators and administrators through analytics dashboards (KNBS, 2020).
+It has practical implications for improving resource utilization, service efficiency, and farmer productivity (Alene & Coulibaly, 2009).
+The project will showcase mastery of digital system design, mobile and web development, and research methodology, while offering a prototype that could potentially scale into a real-world solution for rural mechanized farming (Laudon & Laudon, 2020).
