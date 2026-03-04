@@ -63,4 +63,41 @@ class OperatorService {
       throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to register tractor');
     }
   }
+
+  Future<List<dynamic>> getMyTractors() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/tractors/my-tractors'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['tractors'] ?? [];
+    } else {
+      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to load your tractors');
+    }
+  }
+
+  Future<void> updateTractorStatus(int tractorId, String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.put(
+      Uri.parse('${ApiConstants.baseUrl}/tractors/$tractorId/status'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'status': status}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update tractor status');
+    }
+  }
 }

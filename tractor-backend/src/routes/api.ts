@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { register, login } from '../controllers/authController';
-import { registerTractor, getAvailableTractors, updateTractorStatus } from '../controllers/tractorController';
+import { updateProfile } from '../controllers/userController';
+import { registerTractor, getAvailableTractors, updateTractorStatus, getMyTractors } from '../controllers/tractorController';
 import { createBooking, getFarmerBookings, getOperatorBookings, updateBookingStatus } from '../controllers/bookingController';
 import { initiateStkPush, mpesaCallback, getPaymentStatus } from '../controllers/paymentController';
 import { submitReview, getOperatorReviews } from '../controllers/reviewController';
@@ -10,20 +11,24 @@ import { authenticateToken, requireRole } from '../middleware/auth';
 const router = Router();
 
 // ──────────────────────────────────────
-// AUTH ROUTES — public
+// AUTH/USER ROUTES
 // ──────────────────────────────────────
 // POST   /api/auth/register   { name, email, phone, password, role }
 // POST   /api/auth/login      { identifier (email or phone), password }
+// PUT    /api/users/profile   { name, email, phone, currentPassword }
 router.post('/auth/register', register);
 router.post('/auth/login', login);
+router.put('/users/profile', authenticateToken, updateProfile);
 
 // ──────────────────────────────────────
 // TRACTOR ROUTES
 // ──────────────────────────────────────
-// GET    /api/tractors/available   → any logged-in user
-// POST   /api/tractors             → operator only: register a tractor
-// PUT    /api/tractors/:id/status  → operator only: set status
+// GET    /api/tractors/available    → any logged-in user
+// GET    /api/tractors/my-tractors  → operator only: see own tractors
+// POST   /api/tractors              → operator only: register a tractor
+// PUT    /api/tractors/:id/status   → operator only: set status
 router.get('/tractors/available', authenticateToken, getAvailableTractors);
+router.get('/tractors/my-tractors', authenticateToken, requireRole('operator'), getMyTractors);
 router.post('/tractors', authenticateToken, requireRole('operator'), registerTractor);
 router.put('/tractors/:id/status', authenticateToken, requireRole('operator'), updateTractorStatus);
 

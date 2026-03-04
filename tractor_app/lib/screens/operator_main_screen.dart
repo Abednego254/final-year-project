@@ -1,22 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'farmer_home_screen.dart';
-import 'farmer_bookings_screen.dart';
-import 'farmer_profile_screen.dart';
+import 'operator_home_screen.dart';
+import 'operator_profile_screen.dart';
+import 'operator_tractors_screen.dart';
 
-class FarmerMainScreen extends StatefulWidget {
-  const FarmerMainScreen({super.key});
+class OperatorMainScreen extends StatefulWidget {
+  const OperatorMainScreen({super.key});
 
   @override
-  State<FarmerMainScreen> createState() => _FarmerMainScreenState();
+  State<OperatorMainScreen> createState() => _OperatorMainScreenState();
 }
 
-class _FarmerMainScreenState extends State<FarmerMainScreen> {
+class _OperatorMainScreenState extends State<OperatorMainScreen> {
   int _currentIndex = 0;
   final List<Widget> _pages = [
-    const FarmerHomeScreen(),
-    const FarmerBookingsScreen(),
-    const FarmerProfileScreen(),
+    const OperatorHomeScreen(),
+    const OperatorTractorsScreen(),
+    const OperatorProfileScreen(),
   ];
 
   @override
@@ -29,14 +29,14 @@ class _FarmerMainScreenState extends State<FarmerMainScreen> {
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.agriculture_outlined),
-            selectedIcon: Icon(Icons.agriculture),
-            label: 'Tractors',
+            icon: Icon(Icons.assignment_outlined),
+            selectedIcon: Icon(Icons.assignment),
+            label: 'Jobs',
           ),
           NavigationDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history),
-            label: 'Bookings',
+            icon: Icon(Icons.agriculture_outlined),
+            selectedIcon: Icon(Icons.agriculture),
+            label: 'My Tractors',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),

@@ -71,6 +71,24 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateProfile(String name, String email, String phone, String currentPassword) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final data = await _authService.updateProfile(name, email, phone, currentPassword);
+      final updatedUser = User.fromJson(data['user']);
+      // Retain the existing token
+      if (_token != null) {
+        await _saveUserToPrefs(_token!, updatedUser);
+        _user = updatedUser;
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> logout() async {
     _token = null;
     _user = null;

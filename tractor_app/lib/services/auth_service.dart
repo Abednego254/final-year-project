@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'api_constants.dart';
 
 class AuthService {
@@ -34,6 +35,31 @@ class AuthService {
       return jsonDecode(response.body);
     } else {
       throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to register');
+    }
+  }
+
+  Future<Map<String, dynamic>> updateProfile(String name, String email, String phone, String currentPassword) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.put(
+      Uri.parse('${ApiConstants.baseUrl}/users/profile'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'currentPassword': currentPassword,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update profile');
     }
   }
 }
