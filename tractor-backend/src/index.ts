@@ -10,10 +10,10 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST', 'PUT', 'DELETE']
-    }
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
+  }
 });
 
 // Middleware
@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Database Initialization (Auto-migrate basic tables for development)
 const initDb = async () => {
-    const tableQueries = `
+  const tableQueries = `
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       name VARCHAR(100) NOT NULL,
@@ -40,6 +40,8 @@ const initDb = async () => {
       model VARCHAR(100),
       license_plate VARCHAR(50) UNIQUE NOT NULL,
       status VARCHAR(20) DEFAULT 'available', -- available, busy, maintenance
+      latitude NUMERIC(10, 8),
+      longitude NUMERIC(11, 8),
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
 
@@ -74,12 +76,12 @@ const initDb = async () => {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
-    try {
-        await query(tableQueries);
-        console.log('Database tables successfully verified/created');
-    } catch (err) {
-        console.error('Error creating default tables:', err);
-    }
+  try {
+    await query(tableQueries);
+    console.log('Database tables successfully verified/created');
+  } catch (err) {
+    console.error('Error creating default tables:', err);
+  }
 };
 
 initDb();
@@ -90,31 +92,41 @@ import apiRoutes from './routes/api';
 app.use('/api', apiRoutes);
 
 app.get('/health', async (req, res) => {
-    try {
-        const result = await query('SELECT NOW()');
-        res.json({ status: 'ok', db_time: result.rows[0].now, message: 'Tractor API is running' });
-    } catch (error) {
-        res.status(500).json({ status: 'error', message: 'Database connection failed' });
-    }
+  try {
+    const result = await query('SELECT NOW()');
+    res.json({ status: 'ok', db_time: result.rows[0].now, message: 'Tractor API is running' });
+  } catch (error) {
+    res.status(500).json({ status: 'error', message: 'Database connection failed' });
+  }
 });
 
 // WebSockets Implementation
 io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
+  console.log('Client connected:', socket.id);
 
-    // Operators emit their live location
-    socket.on('update_location', (data) => {
-        // data expected: { tractorId, latitude, longitude }
-        // Broadcast location to farmers observing that tractor
-        socket.broadcast.emit(`tractor_${data.tractorId}_location`, data);
-    });
+  // Operators emit their live location
+  socket.on('update_location', async (data) => {
+    // data expected: { tractorId, latitude, longitude }
+    // Broadcast location to farmers observing that tractor
+    socket.broadcast.emit(`tractor_${data.tractorId}_location`, data);
 
-    socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-    });
+    // Persist the latest location to the database
+    try {
+      if (data.tractorId && data.latitude && data.longitude) {
+        await query('UPDATE tractors SET latitude = $1, longitude = $2 WHERE id = $3',
+          [data.latitude, data.longitude, data.tractorId]);
+      }
+    } catch (error) {
+      console.error('Failed to persist tractor location:', error);
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('Client disconnected:', socket.id);
+  });
 });
 
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
