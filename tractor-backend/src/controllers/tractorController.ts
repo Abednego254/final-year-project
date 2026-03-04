@@ -28,7 +28,7 @@ export const registerTractor = async (req: AuthRequest, res: Response): Promise<
 export const getAvailableTractors = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const result = await query(`
-      SELECT t.id, t.model, t.license_plate, t.status, t.latitude, t.longitude, u.name as owner_name, u.phone as owner_phone 
+      SELECT t.id, t.model, t.license_plate, t.status, u.name as owner_name, u.phone as owner_phone 
       FROM tractors t 
       JOIN users u ON t.owner_id = u.id 
       WHERE t.status = 'available'
@@ -41,10 +41,35 @@ export const getAvailableTractors = async (req: AuthRequest, res: Response): Pro
     }
 };
 
+export const getMyTractors = async (req: AuthRequest, res: Response): Promise<void> => {
+    const owner_id = req.user?.id;
+
+    if (!owner_id) {
+        res.status(401).json({ message: 'Unauthorized.' });
+        return;
+    }
+
+    try {
+        const result = await query(
+            'SELECT * FROM tractors WHERE owner_id = $1 ORDER BY id DESC',
+            [owner_id]
+        );
+        res.json({ tractors: result.rows });
+    } catch (error) {
+        console.error('Fetch my tractors error:', error);
+        res.status(500).json({ message: 'Server error fetching your tractors.' });
+    }
+};
+
 export const updateTractorStatus = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
     const { status } = req.body; // 'available', 'busy', 'maintenance'
     const owner_id = req.user?.id;
+
+    if (!['available', 'busy', 'maintenance'].includes(status)) {
+        res.status(400).json({ message: 'Invalid status.' });
+        return;
+    }
 
     try {
         const tractor = await query('SELECT * FROM tractors WHERE id = $1 AND owner_id = $2', [id, owner_id]);
