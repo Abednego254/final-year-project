@@ -52,6 +52,24 @@ export const getFarmerBookings = async (req: AuthRequest, res: Response): Promis
     }
 };
 
+export const getOperatorBookings = async (req: AuthRequest, res: Response): Promise<void> => {
+    const operator_id = req.user?.id;
+    try {
+        const result = await query(`
+      SELECT b.*, f.name as farmer_name, f.phone as farmer_phone
+      FROM bookings b
+      JOIN tractors t ON b.tractor_id = t.id
+      JOIN users f ON b.farmer_id = f.id
+      WHERE t.owner_id = $1
+      ORDER BY b.created_at DESC
+    `, [operator_id]);
+        res.json({ bookings: result.rows });
+    } catch (error) {
+        console.error('Fetch operator bookings error:', error);
+        res.status(500).json({ message: 'Server error fetching operator bookings.' });
+    }
+};
+
 export const updateBookingStatus = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
     const { status } = req.body; // 'accepted', 'completed', 'cancelled'

@@ -4,6 +4,7 @@ import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import Bookings from './pages/Bookings';
 import Tractors from './pages/Tractors';
+import Users from './pages/Users';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 
@@ -31,6 +32,7 @@ function AppRoutes() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="bookings" element={<Bookings />} />
         <Route path="tractors" element={<Tractors />} />
+        <Route path="users" element={<Users />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

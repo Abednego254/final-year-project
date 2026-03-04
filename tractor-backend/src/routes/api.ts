@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { register, login } from '../controllers/authController';
 import { registerTractor, getAvailableTractors, updateTractorStatus } from '../controllers/tractorController';
-import { createBooking, getFarmerBookings, updateBookingStatus } from '../controllers/bookingController';
+import { createBooking, getFarmerBookings, getOperatorBookings, updateBookingStatus } from '../controllers/bookingController';
 import { initiateStkPush, mpesaCallback, getPaymentStatus } from '../controllers/paymentController';
 import { submitReview, getOperatorReviews } from '../controllers/reviewController';
 import { getDashboardStats, getAllBookings, getAllUsers, getAllTractors } from '../controllers/adminController';
@@ -35,6 +35,7 @@ router.put('/tractors/:id/status', authenticateToken, requireRole('operator'), u
 // PUT    /api/bookings/:id/status       → operator: accept / complete / cancel
 router.post('/bookings', authenticateToken, requireRole('farmer'), createBooking);
 router.get('/bookings/my-bookings', authenticateToken, requireRole('farmer'), getFarmerBookings);
+router.get('/bookings/operator-bookings', authenticateToken, requireRole('operator'), getOperatorBookings);
 router.put('/bookings/:id/status', authenticateToken, requireRole('operator'), updateBookingStatus);
 
 // ──────────────────────────────────────
