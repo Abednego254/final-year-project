@@ -59,6 +59,7 @@ const initDb = async () => {
     );
     
     -- Ensure columns exist in case the table was created before
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS estimated_start_time VARCHAR(100);
     ALTER TABLE bookings ADD COLUMN IF NOT EXISTS farmer_completed BOOLEAN DEFAULT FALSE;
     ALTER TABLE bookings ADD COLUMN IF NOT EXISTS operator_completed BOOLEAN DEFAULT FALSE;
 
