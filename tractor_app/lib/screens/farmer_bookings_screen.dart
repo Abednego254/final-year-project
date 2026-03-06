@@ -147,6 +147,24 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
     );
   }
 
+  void _verifyPayment(int bookingId) async {
+    try {
+      showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.purple)), barrierDismissible: false);
+      final res = await _paymentService.verifyPayment(bookingId);
+      if (!mounted) return;
+      Navigator.pop(context); // close loading
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(res['message'] ?? 'Verified.', style: GoogleFonts.inter()), 
+        backgroundColor: (res['message'] ?? '').toString().toLowerCase().contains('success') ? Colors.green : Colors.blue
+      ));
+      _fetchBookings();
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // close loading
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString(), style: GoogleFonts.inter()), backgroundColor: Colors.red));
+    }
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending': return Colors.orange;
@@ -307,6 +325,20 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                                 child: Text('Pay via M-Pesa (Priority)', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                             ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: OutlinedButton(
+                                onPressed: () => _verifyPayment(b['id']),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.purple,
+                                  side: const BorderSide(color: Colors.purple),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: Text('Verify Pending Payment', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                              ),
+                            ),
                           ],
                           if (b['status'] == 'pending' || b['status'] == 'accepted') ...[
                             const SizedBox(height: 12),
@@ -344,24 +376,41 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                           ],
                           if (b['status'] == 'paid' && b['estimated_start_time'] != null && !(b['farmer_completed'] == true)) ...[
                              const SizedBox(height: 16),
-                             if (b['operator_completed'] == true) 
+                             if (b['operator_completed'] != true)
+                               Container(
+                                 padding: const EdgeInsets.all(12),
+                                 decoration: BoxDecoration(
+                                   color: Colors.blue.shade50,
+                                   borderRadius: BorderRadius.circular(8),
+                                   border: Border.all(color: Colors.blue.shade200)
+                                 ),
+                                 child: Row(
+                                   children: [
+                                     Icon(Icons.access_time, color: Colors.blue.shade600),
+                                     const SizedBox(width: 8),
+                                     Expanded(child: Text('Waiting for operator to complete the job before you can confirm.', style: GoogleFonts.inter(color: Colors.blue.shade800))),
+                                   ]
+                                 )
+                               )
+                             else ...[
                                Padding(
                                  padding: const EdgeInsets.only(bottom: 8.0),
                                  child: Text('The operator has marked this job as finished. Please confirm.', style: GoogleFonts.inter(color: Colors.orange.shade800, fontWeight: FontWeight.w500)),
                                ),
-                             SizedBox(
-                              width: double.infinity,
-                              height: 48,
-                              child: ElevatedButton(
-                                onPressed: () => _updateStatus(b['id'], 'completed'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  elevation: 0,
+                               SizedBox(
+                                width: double.infinity,
+                                height: 48,
+                                child: ElevatedButton(
+                                  onPressed: () => _updateStatus(b['id'], 'completed'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    elevation: 0,
+                                  ),
+                                  child: Text('Mark Job as Complete', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                                 ),
-                                child: Text('Mark Job as Complete', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
-                            ),
+                             ],
                           ]
                         ],
                       ),

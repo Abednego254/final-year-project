@@ -3,7 +3,7 @@ import { register, login } from '../controllers/authController';
 import { updateProfile } from '../controllers/userController';
 import { registerTractor, getAvailableTractors, updateTractorStatus, getMyTractors } from '../controllers/tractorController';
 import { createBooking, getFarmerBookings, getOperatorBookings, updateBookingStatus, updateBookingStartTime } from '../controllers/bookingController';
-import { initiateStkPush, mpesaCallback, getPaymentStatus } from '../controllers/paymentController';
+import { initiateStkPush, mpesaCallback, getPaymentStatus, verifyPayment } from '../controllers/paymentController';
 import { submitReview, getOperatorReviews } from '../controllers/reviewController';
 import { getDashboardStats, getAllBookings, getAllUsers, getAllTractors } from '../controllers/adminController';
 import { authenticateToken, requireRole } from '../middleware/auth';
@@ -54,6 +54,7 @@ router.put('/bookings/:id/start-time', authenticateToken, requireRole('operator'
 router.post('/payments/stk-push', authenticateToken, requireRole('farmer'), initiateStkPush);
 router.post('/payments/callback', mpesaCallback);                          // Safaricom hits this
 router.get('/payments/status/:bookingId', authenticateToken, getPaymentStatus);
+router.get('/payments/verify/:bookingId', authenticateToken, verifyPayment);
 
 // ──────────────────────────────────────
 // REVIEW ROUTES

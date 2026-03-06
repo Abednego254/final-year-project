@@ -162,6 +162,10 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                       final b = _bookings[index];
                       final statusColor = _getStatusColor(b['status']);
                       
+                      final bool hasStartTime = b['estimated_start_time'] != null && 
+                                                b['estimated_start_time'].toString().trim().isNotEmpty && 
+                                                b['estimated_start_time'].toString() != 'null';
+                      
                       return Container(
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
@@ -230,6 +234,17 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                   Text('KES ${b['price']}', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green.shade700)),
                                 ],
                               ),
+                              if (hasStartTime)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.access_time, size: 20, color: Colors.purple),
+                                      const SizedBox(width: 8),
+                                      Text('Starts: ${b['estimated_start_time']}', style: GoogleFonts.inter(color: Colors.purple, fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                ),
                               if (b['status'] == 'paid' || b['status'] == 'completed')
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4.0),
@@ -290,7 +305,7 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                     )
                                   )
                                 ),
-                              if (b['status'] == 'paid' && b['estimated_start_time'] == null)
+                              if (b['status'] == 'paid' && !hasStartTime)
                                 SizedBox(
                                   width: double.infinity,
                                   height: 48,
@@ -304,7 +319,7 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                     child: Text('Funds Received. Set Start Time', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                                   ),
                                 ),
-                              if (b['status'] == 'paid' && b['estimated_start_time'] != null && !(b['operator_completed'] == true))
+                              if (b['status'] == 'paid' && hasStartTime && !(b['operator_completed'] == true))
                                 SizedBox(
                                   width: double.infinity,
                                   height: 48,
