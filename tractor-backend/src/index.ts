@@ -49,11 +49,19 @@ const initDb = async () => {
       id SERIAL PRIMARY KEY,
       farmer_id INTEGER REFERENCES users(id),
       tractor_id INTEGER REFERENCES tractors(id),
-      status VARCHAR(20) DEFAULT 'pending', -- pending, accepted, completed, cancelled
+      status VARCHAR(20) DEFAULT 'pending', -- pending, accepted, paid, completed, cancelled
       price DECIMAL(10, 2),
       scheduled_date TIMESTAMP,
+      estimated_start_time VARCHAR(100),
+      farmer_completed BOOLEAN DEFAULT FALSE,
+      operator_completed BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+    
+    -- Ensure columns exist in case the table was created before
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS farmer_completed BOOLEAN DEFAULT FALSE;
+    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS operator_completed BOOLEAN DEFAULT FALSE;
+
 
     CREATE TABLE IF NOT EXISTS payments (
       id SERIAL PRIMARY KEY,
@@ -73,6 +81,18 @@ const initDb = async () => {
       operator_id INTEGER REFERENCES users(id),
       rating INTEGER CHECK (rating >= 1 AND rating <= 5),
       comment TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE TABLE IF NOT EXISTS earnings (
+      id SERIAL PRIMARY KEY,
+      booking_id INTEGER REFERENCES bookings(id) UNIQUE,
+      operator_id INTEGER REFERENCES users(id),
+      total_amount DECIMAL(10, 2) NOT NULL,
+      system_fee DECIMAL(10, 2) NOT NULL,
+      first_half DECIMAL(10, 2) NOT NULL,
+      second_half DECIMAL(10, 2) NOT NULL,
+      first_half_paid BOOLEAN DEFAULT TRUE,
+      second_half_paid BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -97,6 +117,17 @@ app.get('/health', async (req, res) => {
     res.json({ status: 'ok', db_time: result.rows[0].now, message: 'Tractor API is running' });
   } catch (error) {
     res.status(500).json({ status: 'error', message: 'Database connection failed' });
+  }
+});
+
+// Internal endpoint to emit socket events from controllers
+app.post('/api/internal/notify', (req, res) => {
+  const { event, data } = req.body;
+  if (event && data) {
+    io.emit(event, data);
+    res.json({ success: true });
+  } else {
+    res.status(400).json({ error: 'Missing event or data' });
   }
 });
 

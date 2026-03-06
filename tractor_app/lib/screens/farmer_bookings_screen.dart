@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/booking_service.dart';
 import '../services/payment_service.dart';
+import '../services/socket_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 
@@ -15,6 +16,7 @@ class FarmerBookingsScreen extends StatefulWidget {
 class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
   final BookingService _bookingService = BookingService();
   final PaymentService _paymentService = PaymentService();
+  final SocketService _socketService = SocketService();
   List<dynamic> _bookings = [];
   bool _isLoading = true;
 
@@ -22,6 +24,36 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
   void initState() {
     super.initState();
     _fetchBookings();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      if (user != null) {
+        _socketService.listenToNotifications(user.id!, 'farmer', (data) {
+          if (mounted) {
+            _fetchBookings(); // Refresh list to show new paid/cancelled status
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
+                content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+                ],
+              ),
+            );
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user != null) {
+      _socketService.stopListeningToNotifications(user.id!, 'farmer');
+    }
+    super.dispose();
   }
 
   Future<void> _fetchBookings() async {
@@ -35,6 +67,20 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _updateStatus(int bookingId, String newStatus) async {
+    try {
+      showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
+      await _bookingService.updateBookingStatus(bookingId, newStatus);
+      if (mounted) Navigator.pop(context); // close loading
+      _fetchBookings();
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // close loading
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e', style: GoogleFonts.inter()), backgroundColor: Colors.red));
+      }
     }
   }
 
@@ -84,10 +130,12 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                try {
                  showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
                  final res = await _paymentService.initiateStkPush(bookingId, phoneController.text);
+                 if (!mounted) return;
                  Navigator.pop(context); // close loading
                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['message'], style: GoogleFonts.inter()), backgroundColor: Colors.green));
                  _fetchBookings(); 
                } catch (e) {
+                 if (!mounted) return;
                  Navigator.pop(context); // close loading
                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString(), style: GoogleFonts.inter()), backgroundColor: Colors.red));
                }
@@ -103,6 +151,7 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
     switch (status.toLowerCase()) {
       case 'pending': return Colors.orange;
       case 'accepted': return Colors.blue;
+      case 'paid': return Colors.purple;
       case 'completed': return Colors.green;
       case 'cancelled': return Colors.red;
       default: return Colors.grey;
@@ -199,7 +248,51 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                               Text('KES ${b['price']}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green.shade700)),
                             ],
                           ),
-                          if (b['status'] == 'accepted') ...[
+                          if (b['estimated_start_time'] != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.access_time, size: 20, color: Colors.purple),
+                                const SizedBox(width: 8),
+                                Text('Starts: ${b['estimated_start_time']}', style: GoogleFonts.inter(color: Colors.purple, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ],
+                           if (b['status'] == 'pending') ...[
+                             const SizedBox(height: 16),
+                             Container(
+                               padding: const EdgeInsets.all(12),
+                               decoration: BoxDecoration(
+                                 color: Colors.orange.shade50,
+                                 borderRadius: BorderRadius.circular(8),
+                                 border: Border.all(color: Colors.orange.shade200)
+                               ),
+                               child: Row(
+                                 children: [
+                                   Icon(Icons.hourglass_empty, color: Colors.orange.shade600),
+                                   const SizedBox(width: 8),
+                                   Expanded(child: Text('Waiting for the operator to accept this booking.', style: GoogleFonts.inter(color: Colors.orange.shade800))),
+                                 ]
+                               )
+                             )
+                           ],
+                           if (b['status'] == 'accepted') ...[
+                            const SizedBox(height: 16),
+                             Container(
+                               padding: const EdgeInsets.all(12),
+                               decoration: BoxDecoration(
+                                 color: Colors.blue.shade50,
+                                 borderRadius: BorderRadius.circular(8),
+                                 border: Border.all(color: Colors.blue.shade200)
+                               ),
+                               child: Row(
+                                 children: [
+                                   Icon(Icons.payment, color: Colors.blue.shade600),
+                                   const SizedBox(width: 8),
+                                   Expanded(child: Text('Operator accepted! Please pay to secure the booking.', style: GoogleFonts.inter(color: Colors.blue.shade800))),
+                                 ]
+                               )
+                             ),
                             const SizedBox(height: 16),
                             SizedBox(
                               width: double.infinity,
@@ -211,10 +304,65 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                   elevation: 0,
                                 ),
-                                child: Text('Pay via M-Pesa', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text('Pay via M-Pesa (Priority)', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ],
+                          if (b['status'] == 'pending' || b['status'] == 'accepted') ...[
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: OutlinedButton(
+                                onPressed: () => _updateStatus(b['id'], 'cancelled'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                  side: const BorderSide(color: Colors.red),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                                child: Text('Cancel Booking', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ],
+                          if (b['status'] == 'paid' && b['estimated_start_time'] == null) ...[
+                             const SizedBox(height: 16),
+                             Container(
+                               padding: const EdgeInsets.all(12),
+                               decoration: BoxDecoration(
+                                 color: Colors.green.shade50,
+                                 borderRadius: BorderRadius.circular(8),
+                                 border: Border.all(color: Colors.green.shade200)
+                               ),
+                               child: Row(
+                                 children: [
+                                   Icon(Icons.check_circle, color: Colors.green.shade600),
+                                   const SizedBox(width: 8),
+                                   Expanded(child: Text('Payment Successful! The operator will set an estimated start time shortly.', style: GoogleFonts.inter(color: Colors.green.shade800))),
+                                 ]
+                               )
+                             )
+                          ],
+                          if (b['status'] == 'paid' && b['estimated_start_time'] != null && !(b['farmer_completed'] == true)) ...[
+                             const SizedBox(height: 16),
+                             if (b['operator_completed'] == true) 
+                               Padding(
+                                 padding: const EdgeInsets.only(bottom: 8.0),
+                                 child: Text('The operator has marked this job as finished. Please confirm.', style: GoogleFonts.inter(color: Colors.orange.shade800, fontWeight: FontWeight.w500)),
+                               ),
+                             SizedBox(
+                              width: double.infinity,
+                              height: 48,
+                              child: ElevatedButton(
+                                onPressed: () => _updateStatus(b['id'], 'completed'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                                child: Text('Mark Job as Complete', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ]
                         ],
                       ),
                     ),

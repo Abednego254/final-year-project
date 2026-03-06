@@ -28,7 +28,7 @@ export const registerTractor = async (req: AuthRequest, res: Response): Promise<
 export const getAvailableTractors = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const result = await query(`
-      SELECT t.id, t.model, t.license_plate, t.status, u.name as owner_name, u.phone as owner_phone 
+      SELECT t.id, t.model, t.license_plate, t.status, u.id as owner_id, u.name as owner_name, u.phone as owner_phone 
       FROM tractors t 
       JOIN users u ON t.owner_id = u.id 
       WHERE t.status = 'available'

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../providers/tractor_provider.dart';
 import '../services/booking_service.dart';
+import '../services/review_service.dart';
 
 class FarmerHomeScreen extends StatefulWidget {
   const FarmerHomeScreen({super.key});
@@ -14,6 +15,7 @@ class FarmerHomeScreen extends StatefulWidget {
 
 class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
   final BookingService _bookingService = BookingService();
+  final ReviewService _reviewService = ReviewService();
 
   int? _selectedTractorId;
   double _acres = 1.0;
@@ -83,6 +85,64 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text('Operator Reviews', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 90,
+                    child: FutureBuilder<List<dynamic>>(
+                      future: _reviewService.getOperatorReviews(tractor['owner_id']),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(child: CircularProgressIndicator(color: Colors.green));
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error loading reviews.', style: GoogleFonts.inter(color: Colors.red));
+                        }
+                        final reviews = snapshot.data ?? [];
+                        if (reviews.isEmpty) {
+                          return Text('No reviews yet for this operator.', style: GoogleFonts.inter(color: Colors.grey.shade600));
+                        }
+                        return ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: reviews.length,
+                          itemBuilder: (context, index) {
+                            final r = reviews[index];
+                            return Container(
+                              width: 250,
+                              margin: const EdgeInsets.only(right: 12),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.grey.shade200),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.star, color: Colors.orange, size: 16),
+                                      Text(' ${r['rating']}/5', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Expanded(
+                                    child: Text(
+                                      r['comment'] ?? '',
+                                      style: GoogleFonts.inter(fontSize: 13, color: Colors.black87),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -175,12 +235,19 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                                 }
                               } catch (e) {
                                 if (mounted) {
+                                  Navigator.pop(ctx);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Error: $e', style: GoogleFonts.inter()), backgroundColor: Colors.red),
+                                    SnackBar(
+                                      content: Text(e.toString().replaceAll('Exception: ', ''), style: GoogleFonts.inter(fontWeight: FontWeight.bold)), 
+                                      backgroundColor: Colors.red,
+                                      duration: const Duration(seconds: 4),
+                                    ),
                                   );
                                 }
                               } finally {
-                                setModalState(() => _isBooking = false);
+                                if (mounted) {
+                                  setModalState(() => _isBooking = false);
+                                }
                               }
                             },
                             child: Text('Confirm Booking', style: GoogleFonts.inter(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
@@ -267,7 +334,8 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                             Icon(Icons.search_off, size: 64, color: Colors.grey.shade400),
                             const SizedBox(height: 16),
                             Text(
-                              'No tractors available right now.',
+                              'No available tractors right now. Please wait until an operator toggles a tractor to available.',
+                              textAlign: TextAlign.center,
                               style: GoogleFonts.inter(color: Colors.grey.shade600, fontSize: 16),
                             ),
                           ],

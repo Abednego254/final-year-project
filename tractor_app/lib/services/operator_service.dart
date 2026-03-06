@@ -41,6 +41,24 @@ class OperatorService {
     }
   }
 
+  Future<void> updateBookingStartTime(int bookingId, String startTime) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.put(
+      Uri.parse('${ApiConstants.baseUrl}/bookings/$bookingId/start-time'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'estimated_start_time': startTime}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update start time');
+    }
+  }
+
   Future<Map<String, dynamic>> registerTractor(String model, String licensePlate) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');

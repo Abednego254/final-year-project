@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { register, login } from '../controllers/authController';
 import { updateProfile } from '../controllers/userController';
 import { registerTractor, getAvailableTractors, updateTractorStatus, getMyTractors } from '../controllers/tractorController';
-import { createBooking, getFarmerBookings, getOperatorBookings, updateBookingStatus } from '../controllers/bookingController';
+import { createBooking, getFarmerBookings, getOperatorBookings, updateBookingStatus, updateBookingStartTime } from '../controllers/bookingController';
 import { initiateStkPush, mpesaCallback, getPaymentStatus } from '../controllers/paymentController';
 import { submitReview, getOperatorReviews } from '../controllers/reviewController';
 import { getDashboardStats, getAllBookings, getAllUsers, getAllTractors } from '../controllers/adminController';
@@ -38,10 +38,12 @@ router.put('/tractors/:id/status', authenticateToken, requireRole('operator'), u
 // POST   /api/bookings                  → farmer: create a booking
 // GET    /api/bookings/my-bookings      → farmer: view own bookings
 // PUT    /api/bookings/:id/status       → operator: accept / complete / cancel
+// PUT    /api/bookings/:id/start-time   → operator: set estimated start time
 router.post('/bookings', authenticateToken, requireRole('farmer'), createBooking);
 router.get('/bookings/my-bookings', authenticateToken, requireRole('farmer'), getFarmerBookings);
 router.get('/bookings/operator-bookings', authenticateToken, requireRole('operator'), getOperatorBookings);
-router.put('/bookings/:id/status', authenticateToken, requireRole('operator'), updateBookingStatus);
+router.put('/bookings/:id/status', authenticateToken, updateBookingStatus);
+router.put('/bookings/:id/start-time', authenticateToken, requireRole('operator'), updateBookingStartTime);
 
 // ──────────────────────────────────────
 // PAYMENT ROUTES (M-Pesa Daraja)

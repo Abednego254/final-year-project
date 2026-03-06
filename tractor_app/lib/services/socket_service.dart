@@ -45,4 +45,14 @@ class SocketService {
   void stopListening(int tractorId) {
     socket.off('tractor_${tractorId}_location');
   }
+
+  void listenToNotifications(int userId, String role, Function(Map<String, dynamic> data) onNotification) {
+    socket.on('${role}_${userId}_notification', (data) {
+      onNotification(data);
+    });
+  }
+
+  void stopListeningToNotifications(int userId, String role) {
+    socket.off('${role}_${userId}_notification');
+  }
 }

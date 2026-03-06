@@ -18,8 +18,10 @@ export const getDashboardStats = async (req: AuthRequest, res: Response): Promis
                COUNT(*) FILTER (WHERE status = 'pending') as pending,
                COUNT(*) FILTER (WHERE status = 'completed') as completed
              FROM bookings`),
-            query(`SELECT COALESCE(SUM(amount), 0) as total_revenue
-             FROM payments WHERE status = 'completed'`),
+            query(`SELECT 
+                COALESCE((SELECT SUM(amount) FROM payments WHERE status = 'completed'), 0) as total_revenue,
+                COALESCE((SELECT SUM(system_fee) FROM earnings), 0) as system_earnings
+            `),
         ]);
 
         res.json({

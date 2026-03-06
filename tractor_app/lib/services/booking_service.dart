@@ -46,4 +46,22 @@ class BookingService {
       throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to load bookings');
     }
   }
+
+  Future<void> updateBookingStatus(int bookingId, String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.put(
+      Uri.parse('${ApiConstants.baseUrl}/bookings/$bookingId/status'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'status': status}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update booking status');
+    }
+  }
 }

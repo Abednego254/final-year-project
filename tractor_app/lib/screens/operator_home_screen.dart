@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../services/operator_service.dart';
+import '../services/socket_service.dart';
 
 class OperatorHomeScreen extends StatefulWidget {
   const OperatorHomeScreen({super.key});
@@ -13,6 +14,7 @@ class OperatorHomeScreen extends StatefulWidget {
 
 class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
   final OperatorService _operatorService = OperatorService();
+  final SocketService _socketService = SocketService();
   List<dynamic> _bookings = [];
   bool _isLoading = true;
 
@@ -20,6 +22,36 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
   void initState() {
     super.initState();
     _fetchBookings();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      if (user != null) {
+        _socketService.listenToNotifications(user.id!, 'operator', (data) {
+          if (mounted) {
+            _fetchBookings(); // Refresh list to show new paid/cancelled status
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
+                content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+                ],
+              ),
+            );
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user != null) {
+      _socketService.stopListeningToNotifications(user.id!, 'operator');
+    }
+    super.dispose();
   }
 
   Future<void> _fetchBookings() async {
@@ -50,10 +82,45 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
     }
   }
 
+  void _showStartTimeDialog(int bookingId) {
+    final timeController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Set Start Time', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        content: TextField(
+          controller: timeController,
+          decoration: const InputDecoration(hintText: 'e.g., In 2 hours or At 14:00'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              if (timeController.text.isNotEmpty) {
+                try {
+                  showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
+                  await _operatorService.updateBookingStartTime(bookingId, timeController.text);
+                  Navigator.pop(context);
+                  _fetchBookings();
+                } catch (e) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      )
+    );
+  }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending': return Colors.orange;
       case 'accepted': return Colors.blue;
+      case 'paid': return Colors.purple;
       case 'completed': return Colors.green;
       case 'cancelled': return Colors.red;
       default: return Colors.grey;
@@ -159,10 +226,21 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Estimated Price', style: GoogleFonts.inter(color: Colors.grey.shade600)),
-                                  Text('KES ${b['price']}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green.shade700)),
+                                  Text('Total Price', style: GoogleFonts.inter(color: Colors.grey.shade600)),
+                                  Text('KES ${b['price']}', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green.shade700)),
                                 ],
                               ),
+                              if (b['status'] == 'paid' || b['status'] == 'completed')
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text('Your Earnings (90%)', style: GoogleFonts.inter(color: Colors.purple.shade600, fontWeight: FontWeight.w500)),
+                                      Text('KES ${(double.parse(b['price'].toString()) * 0.9).toStringAsFixed(2)}', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.purple.shade700)),
+                                    ],
+                                  ),
+                                ),
                               const SizedBox(height: 16),
                               if (b['status'] == 'pending')
                                 Row(
@@ -193,6 +271,40 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                   ],
                                 ),
                               if (b['status'] == 'accepted')
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 16.0),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.shade50,
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.orange.shade200)
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.payment, color: Colors.orange.shade600),
+                                        const SizedBox(width: 8),
+                                        Expanded(child: Text('Waiting for payment from farmer.', style: GoogleFonts.inter(color: Colors.orange.shade800))),
+                                      ]
+                                    )
+                                  )
+                                ),
+                              if (b['status'] == 'paid' && b['estimated_start_time'] == null)
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: ElevatedButton(
+                                    onPressed: () => _showStartTimeDialog(b['id']),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.purple,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      elevation: 0,
+                                    ),
+                                    child: Text('Funds Received. Set Start Time', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              if (b['status'] == 'paid' && b['estimated_start_time'] != null && !(b['operator_completed'] == true))
                                 SizedBox(
                                   width: double.infinity,
                                   height: 48,
@@ -204,6 +316,13 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                       elevation: 0,
                                     ),
                                     child: Text('Mark as Completed', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              if (b['operator_completed'] == true && b['farmer_completed'] != true && b['status'] != 'completed')
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: Center(
+                                    child: Text('Waiting for Farmer to mark as complete', style: GoogleFonts.inter(color: Colors.grey.shade600, fontStyle: FontStyle.italic, fontSize: 13)),
                                   ),
                                 ),
                             ],
