@@ -132,6 +132,17 @@ export const updateBookingStatus = async (req: AuthRequest, res: Response): Prom
                 // Release the rest of the operator funds
                 await query('UPDATE earnings SET second_half_paid = true WHERE booking_id = $1', [id]);
 
+                // Trigger simulated B2C for the second half
+                try {
+                    const earningsResult = await query('SELECT operator_id, second_half FROM earnings WHERE booking_id = $1', [id]);
+                    if (earningsResult.rows.length > 0) {
+                        const { triggerB2CPayout } = require('./payoutController');
+                        await triggerB2CPayout(id, earningsResult.rows[0].operator_id, earningsResult.rows[0].second_half, 'second_half');
+                    }
+                } catch (e) {
+                    console.error('Failed to trigger second-half payout simulation:', e);
+                }
+
                 // Notify both parties that the job is fully complete
                 try {
                     await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `farmer_${finalResult.rows[0].farmer_id}_notification`, data: { title: 'Job Completed', message: `Job #${id} is now fully completed. You can leave a review.`, bookingId: id } }) });

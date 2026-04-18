@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
+import '../services/socket_service.dart';
 import 'farmer_home_screen.dart';
 import 'farmer_bookings_screen.dart';
 import 'farmer_profile_screen.dart';
@@ -18,6 +19,36 @@ class _FarmerMainScreenState extends State<FarmerMainScreen> {
     const FarmerBookingsScreen(),
     const FarmerProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      if (user != null) {
+        SocketService().listenToUserNotifications(user.id, (data) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${data['title']}: ${data['message']}'),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user != null) {
+      SocketService().stopListeningToNotifications(user.id, 'user');
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

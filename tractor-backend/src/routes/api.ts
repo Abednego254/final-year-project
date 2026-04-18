@@ -5,8 +5,22 @@ import { registerTractor, getAvailableTractors, updateTractorStatus, getMyTracto
 import { createBooking, getFarmerBookings, getOperatorBookings, updateBookingStatus, updateBookingStartTime } from '../controllers/bookingController';
 import { initiateStkPush, mpesaCallback, getPaymentStatus, verifyPayment } from '../controllers/paymentController';
 import { submitReview, getOperatorReviews } from '../controllers/reviewController';
-import { getDashboardStats, getAllBookings, getAllUsers, getAllTractors } from '../controllers/adminController';
+import { 
+    getDashboardStats, 
+    getAllBookings, 
+    getAllUsers, 
+    getAllTractors,
+    createAdminUser,
+    updateAdminUser,
+    deleteAdminUser,
+    getTractorHistory,
+    getSystemSettings,
+    updateSystemSettings
+} from '../controllers/adminController';
+import { sendMessageToAdmin, getMessages, replyToMessage } from '../controllers/supportController';
+import { getPayoutHistory } from '../controllers/payoutController';
 import { authenticateToken, requireRole } from '../middleware/auth';
+import { checkMaintenanceMode } from '../middleware/maintenance';
 
 const router = Router();
 
@@ -19,6 +33,7 @@ const router = Router();
 router.post('/auth/register', register);
 router.post('/auth/login', login);
 router.put('/users/profile', authenticateToken, updateProfile);
+router.post('/support/message', authenticateToken, sendMessageToAdmin);
 
 // ──────────────────────────────────────
 // TRACTOR ROUTES
@@ -27,10 +42,10 @@ router.put('/users/profile', authenticateToken, updateProfile);
 // GET    /api/tractors/my-tractors  → operator only: see own tractors
 // POST   /api/tractors              → operator only: register a tractor
 // PUT    /api/tractors/:id/status   → operator only: set status
-router.get('/tractors/available', authenticateToken, getAvailableTractors);
-router.get('/tractors/my-tractors', authenticateToken, requireRole('operator'), getMyTractors);
-router.post('/tractors', authenticateToken, requireRole('operator'), registerTractor);
-router.put('/tractors/:id/status', authenticateToken, requireRole('operator'), updateTractorStatus);
+router.get('/tractors/available', authenticateToken, checkMaintenanceMode, getAvailableTractors);
+router.get('/tractors/my-tractors', authenticateToken, checkMaintenanceMode, requireRole('operator'), getMyTractors);
+router.post('/tractors', authenticateToken, checkMaintenanceMode, requireRole('operator'), registerTractor);
+router.put('/tractors/:id/status', authenticateToken, checkMaintenanceMode, requireRole('operator'), updateTractorStatus);
 
 // ──────────────────────────────────────
 // BOOKING ROUTES
@@ -39,11 +54,11 @@ router.put('/tractors/:id/status', authenticateToken, requireRole('operator'), u
 // GET    /api/bookings/my-bookings      → farmer: view own bookings
 // PUT    /api/bookings/:id/status       → operator: accept / complete / cancel
 // PUT    /api/bookings/:id/start-time   → operator: set estimated start time
-router.post('/bookings', authenticateToken, requireRole('farmer'), createBooking);
-router.get('/bookings/my-bookings', authenticateToken, requireRole('farmer'), getFarmerBookings);
-router.get('/bookings/operator-bookings', authenticateToken, requireRole('operator'), getOperatorBookings);
-router.put('/bookings/:id/status', authenticateToken, updateBookingStatus);
-router.put('/bookings/:id/start-time', authenticateToken, requireRole('operator'), updateBookingStartTime);
+router.post('/bookings', authenticateToken, checkMaintenanceMode, requireRole('farmer'), createBooking);
+router.get('/bookings/my-bookings', authenticateToken, checkMaintenanceMode, requireRole('farmer'), getFarmerBookings);
+router.get('/bookings/operator-bookings', authenticateToken, checkMaintenanceMode, requireRole('operator'), getOperatorBookings);
+router.put('/bookings/:id/status', authenticateToken, checkMaintenanceMode, updateBookingStatus);
+router.put('/bookings/:id/start-time', authenticateToken, checkMaintenanceMode, requireRole('operator'), updateBookingStartTime);
 
 // ──────────────────────────────────────
 // PAYMENT ROUTES (M-Pesa Daraja)
@@ -74,6 +89,15 @@ router.get('/reviews/operator/:operatorId', authenticateToken, getOperatorReview
 router.get('/admin/stats', authenticateToken, requireRole('admin'), getDashboardStats);
 router.get('/admin/bookings', authenticateToken, requireRole('admin'), getAllBookings);
 router.get('/admin/users', authenticateToken, requireRole('admin'), getAllUsers);
+router.post('/admin/users', authenticateToken, requireRole('admin'), createAdminUser);
+router.put('/admin/users/:id', authenticateToken, requireRole('admin'), updateAdminUser);
+router.delete('/admin/users/:id', authenticateToken, requireRole('admin'), deleteAdminUser);
 router.get('/admin/tractors', authenticateToken, requireRole('admin'), getAllTractors);
+router.get('/admin/tractors/:id/history', authenticateToken, requireRole('admin'), getTractorHistory);
+router.get('/admin/messages', authenticateToken, requireRole('admin'), getMessages);
+router.post('/admin/reply', authenticateToken, requireRole('admin'), replyToMessage);
+router.get('/admin/payouts', authenticateToken, requireRole('admin'), getPayoutHistory);
+router.get('/admin/settings', authenticateToken, requireRole('admin'), getSystemSettings);
+router.put('/admin/settings', authenticateToken, requireRole('admin'), updateSystemSettings);
 
 export default router;

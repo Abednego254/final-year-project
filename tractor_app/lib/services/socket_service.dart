@@ -3,7 +3,7 @@ import 'api_constants.dart';
 
 class SocketService {
   static final SocketService _instance = SocketService._internal();
-  late IO.Socket socket;
+  IO.Socket? _socket;
 
   factory SocketService() {
     return _instance;
@@ -11,19 +11,30 @@ class SocketService {
 
   SocketService._internal();
 
+  IO.Socket get socket {
+    if (_socket == null) {
+      initSocket();
+    }
+    return _socket!;
+  }
+
   void initSocket() {
-    socket = IO.io(ApiConstants.baseUrl.replaceAll('/api', ''), <String, dynamic>{
+    if (_socket != null) return;
+
+    _socket = IO.io(ApiConstants.baseUrl.replaceAll('/api', ''), <String, dynamic>{
       'transports': ['websocket'],
       'autoConnect': true,
     });
     
-    socket.onConnect((_) {
+    _socket?.onConnect((_) {
       print('Connected to Socket.io server');
     });
     
-    socket.onDisconnect((_) {
+    _socket?.onDisconnect((_) {
       print('Disconnected from Socket.io server');
     });
+
+    _socket?.connect();
   }
 
   void emitLocation(int tractorId, double lat, double lng) {
@@ -52,7 +63,14 @@ class SocketService {
     });
   }
 
+  void listenToUserNotifications(int userId, Function(Map<String, dynamic> data) onNotification) {
+    socket.on('user_${userId}_notification', (data) {
+      onNotification(data);
+    });
+  }
+
   void stopListeningToNotifications(int userId, String role) {
     socket.off('${role}_${userId}_notification');
+    socket.off('user_${userId}_notification');
   }
 }

@@ -96,9 +96,44 @@ const initDb = async () => {
       second_half_paid BOOLEAN DEFAULT FALSE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS messages (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id),
+      admin_id INTEGER REFERENCES users(id),
+      subject VARCHAR(200),
+      content TEXT,
+      is_read BOOLEAN DEFAULT FALSE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS payouts (
+      id SERIAL PRIMARY KEY,
+      booking_id INTEGER REFERENCES bookings(id),
+      operator_id INTEGER REFERENCES users(id),
+      amount DECIMAL(10, 2) NOT NULL,
+      payout_type VARCHAR(50), -- 'first_half', 'second_half'
+      status VARCHAR(20) DEFAULT 'completed',
+      transaction_id VARCHAR(100),
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS system_settings (
+      key VARCHAR(100) PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `;
   try {
     await query(tableQueries);
+
+    // Seed default system settings
+    await query(`
+      INSERT INTO system_settings (key, value)
+      VALUES ('maintenance_mode', 'false'), ('two_factor_auth', 'false')
+      ON CONFLICT (key) DO NOTHING
+    `);
+
     console.log('Database tables successfully verified/created');
   } catch (err) {
     console.error('Error creating default tables:', err);

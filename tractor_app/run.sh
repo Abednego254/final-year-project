@@ -5,7 +5,7 @@ export PATH=$HOME/Android/Sdk/platform-tools:$PATH
 
 echo "Starting emulator..."
 
-emulator -avd Medium_Phone -gpu host -no-boot-anim -memory 1536 &
+emulator -avd Medium_Phone -gpu host -no-boot-anim -memory 2098 &
 
 echo "Waiting for emulator..."
 

@@ -48,7 +48,9 @@ class FarmerProfileScreen extends StatelessWidget {
                 context,
                 icon: Icons.help_outline,
                 title: 'Help & Support',
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, '/support');
+                },
               ),
               const SizedBox(height: 24),
               SizedBox(
