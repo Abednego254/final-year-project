@@ -67,12 +67,13 @@ class OperatorProfileScreen extends StatelessWidget {
                       iconColor: Colors.grey.shade700,
                     ),
 
-                    const Divider(height: 1),
                     _buildProfileOption(
                       context,
-                      icon: Icons.settings_outlined,
-                      title: 'Settings',
-                      onTap: () {},
+                      icon: Icons.help_outline,
+                      title: 'Help & Support',
+                      onTap: () {
+                        Navigator.pushNamed(context, '/support');
+                      },
                       iconColor: Colors.grey.shade700,
                     ),
                   ],

@@ -5,6 +5,9 @@ import Dashboard from './pages/Dashboard';
 import Bookings from './pages/Bookings';
 import Tractors from './pages/Tractors';
 import Users from './pages/Users';
+import SupportMessages from './pages/Messages';
+import Transactions from './pages/Transactions';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 
@@ -33,6 +36,9 @@ function AppRoutes() {
         <Route path="bookings" element={<Bookings />} />
         <Route path="tractors" element={<Tractors />} />
         <Route path="users" element={<Users />} />
+        <Route path="messages" element={<SupportMessages />} />
+        <Route path="transactions" element={<Transactions />} />
+        <Route path="settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

@@ -130,6 +130,14 @@ const handleSuccessfulPaymentLogic = async (booking_id: number, paidAmount: numb
                  VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
                 [booking_id, operator_id, paidAmount, systemFee, operatorHalf, operatorHalf, true, false]
             );
+
+            // Trigger simulated B2C for the first half
+            try {
+                const { triggerB2CPayout } = require('./payoutController');
+                await triggerB2CPayout(booking_id, operator_id, operatorHalf, 'first_half');
+            } catch (e) {
+                console.error('Failed to trigger first-half payout simulation:', e);
+            }
         }
 
         // Send Real-time notification to the Farmer confirming payment receipt

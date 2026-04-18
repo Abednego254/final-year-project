@@ -7,6 +7,7 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/farmer_main_screen.dart';
 import 'screens/operator_main_screen.dart';
+import 'screens/support_screen.dart';
 
 void main() {
   runApp(
@@ -47,6 +48,7 @@ class TractorApp extends StatelessWidget {
       routes: {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignupScreen(),
+        '/support': (context) => const SupportScreen(),
       },
     );
   }
