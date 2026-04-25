@@ -62,4 +62,34 @@ class AuthService {
       throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update profile');
     }
   }
+
+  Future<Map<String, dynamic>> updateSettings({
+    required bool pushNotifications,
+    required bool smsAlerts,
+    required String language,
+    required bool darkMode,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.put(
+      Uri.parse('${ApiConstants.baseUrl}/users/settings'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'push_notifications': pushNotifications,
+        'sms_alerts': smsAlerts,
+        'language': language,
+        'dark_mode': darkMode,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update settings');
+    }
+  }
 }

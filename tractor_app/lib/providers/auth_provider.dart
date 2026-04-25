@@ -24,10 +24,21 @@ class AuthProvider with ChangeNotifier {
     final userId = prefs.getInt('user_id');
     final userName = prefs.getString('user_name');
     final userEmail = prefs.getString('user_email');
+    final userPhone = prefs.getString('user_phone');
     final userRole = prefs.getString('user_role');
     
-    if (_token != null && userId != null && userName != null && userEmail != null && userRole != null) {
-      _user = User(id: userId, name: userName, email: userEmail, role: userRole);
+    if (_token != null && userId != null && userName != null && userEmail != null) {
+      _user = User(
+        id: userId, 
+        name: userName, 
+        email: userEmail, 
+        phone: userPhone ?? '',
+        role: userRole ?? 'farmer',
+        pushNotifications: prefs.getBool('push_notifications') ?? true,
+        smsAlerts: prefs.getBool('sms_alerts') ?? false,
+        language: prefs.getString('language') ?? 'en',
+        darkMode: prefs.getBool('dark_mode') ?? false,
+      );
       notifyListeners();
     }
   }
@@ -38,7 +49,12 @@ class AuthProvider with ChangeNotifier {
     await prefs.setInt('user_id', user.id);
     await prefs.setString('user_name', user.name);
     await prefs.setString('user_email', user.email);
+    await prefs.setString('user_phone', user.phone);
     await prefs.setString('user_role', user.role);
+    await prefs.setBool('push_notifications', user.pushNotifications);
+    await prefs.setBool('sms_alerts', user.smsAlerts);
+    await prefs.setString('language', user.language);
+    await prefs.setBool('dark_mode', user.darkMode);
   }
 
   Future<void> login(String identifier, String password) async {
@@ -82,6 +98,44 @@ class AuthProvider with ChangeNotifier {
       if (_token != null) {
         await _saveUserToPrefs(_token!, updatedUser);
         _user = updatedUser;
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateSettings({
+    bool? pushNotifications,
+    bool? smsAlerts,
+    String? language,
+    bool? darkMode,
+  }) async {
+    if (_user == null) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final newPush = pushNotifications ?? _user!.pushNotifications;
+      final newSms = smsAlerts ?? _user!.smsAlerts;
+      final newLang = language ?? _user!.language;
+      final newDark = darkMode ?? _user!.darkMode;
+
+      final data = await _authService.updateSettings(
+        pushNotifications: newPush,
+        smsAlerts: newSms,
+        language: newLang,
+        darkMode: newDark,
+      );
+
+      _user = User.fromJson({
+        ..._user!.toJson(),
+        ...data['settings'],
+      });
+
+      if (_token != null) {
+        await _saveUserToPrefs(_token!, _user!);
       }
     } finally {
       _isLoading = false;

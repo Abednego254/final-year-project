@@ -5,6 +5,7 @@ import '../services/socket_service.dart';
 import 'farmer_home_screen.dart';
 import 'farmer_bookings_screen.dart';
 import 'farmer_profile_screen.dart';
+import '../utils/translations.dart';
 
 class FarmerMainScreen extends StatefulWidget {
   const FarmerMainScreen({super.key});
@@ -59,21 +60,21 @@ class _FarmerMainScreenState extends State<FarmerMainScreen> {
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.agriculture_outlined),
-            selectedIcon: Icon(Icons.agriculture),
-            label: 'Tractors',
+            icon: const Icon(Icons.agriculture_outlined),
+            selectedIcon: const Icon(Icons.agriculture),
+            label: Translations.get('home', Provider.of<AuthProvider>(context).user?.language ?? 'en'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.history_outlined),
-            selectedIcon: Icon(Icons.history),
-            label: 'Bookings',
+            icon: const Icon(Icons.history_outlined),
+            selectedIcon: const Icon(Icons.history),
+            label: Translations.get('bookings', Provider.of<AuthProvider>(context).user?.language ?? 'en'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
+            label: Translations.get('profile', Provider.of<AuthProvider>(context).user?.language ?? 'en'),
           ),
         ],
       ),

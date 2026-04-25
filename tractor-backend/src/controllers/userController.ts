@@ -56,3 +56,24 @@ export const updateProfile = async (req: AuthRequest, res: Response): Promise<vo
         res.status(500).json({ message: 'Server error updating profile.' });
     }
 };
+
+export const updateSettings = async (req: AuthRequest, res: Response): Promise<void> => {
+    const { push_notifications, sms_alerts, language, dark_mode } = req.body;
+    const userId = req.user?.id;
+
+    if (!userId) {
+        res.status(401).json({ message: 'Unauthorized.' });
+        return;
+    }
+
+    try {
+        const result = await query(
+            'UPDATE users SET push_notifications = $1, sms_alerts = $2, language = $3, dark_mode = $4 WHERE id = $5 RETURNING push_notifications, sms_alerts, language, dark_mode',
+            [push_notifications, sms_alerts, language, dark_mode, userId]
+        );
+        res.json({ settings: result.rows[0], message: 'Settings updated successfully.' });
+    } catch (error) {
+        console.error('Update settings error:', error);
+        res.status(500).json({ message: 'Server error updating settings.' });
+    }
+};

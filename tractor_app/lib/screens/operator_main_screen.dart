@@ -5,6 +5,7 @@ import '../services/socket_service.dart';
 import 'operator_home_screen.dart';
 import 'operator_profile_screen.dart';
 import 'operator_tractors_screen.dart';
+import '../utils/translations.dart';
 
 class OperatorMainScreen extends StatefulWidget {
   const OperatorMainScreen({super.key});
@@ -53,27 +54,28 @@ class _OperatorMainScreenState extends State<OperatorMainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Provider.of<AuthProvider>(context).user?.language ?? 'en';
     return Scaffold(
       body: _pages[_currentIndex],
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) => setState(() => _currentIndex = index),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.assignment_outlined),
-            selectedIcon: Icon(Icons.assignment),
-            label: 'Jobs',
+            icon: const Icon(Icons.assignment_outlined),
+            selectedIcon: const Icon(Icons.assignment),
+            label: Translations.get('home', Provider.of<AuthProvider>(context).user?.language ?? 'en'),
           ),
           NavigationDestination(
-            icon: Icon(Icons.agriculture_outlined),
-            selectedIcon: Icon(Icons.agriculture),
-            label: 'My Tractors',
+            icon: const Icon(Icons.agriculture_outlined),
+            selectedIcon: const Icon(Icons.agriculture),
+            label: lang == 'en' ? 'My Tractors' : 'Trekta Zangu',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
+            label: Translations.get('profile', Provider.of<AuthProvider>(context).user?.language ?? 'en'),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../services/operator_service.dart';
+import '../utils/translations.dart';
 import 'edit_profile_screen.dart';
 
 class OperatorProfileScreen extends StatelessWidget {
@@ -12,11 +13,12 @@ class OperatorProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<AuthProvider>(context).user;
+    final lang = user?.language ?? 'en';
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('My Profile', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(Translations.get('profile', lang), style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
@@ -57,7 +59,7 @@ class OperatorProfileScreen extends StatelessWidget {
                     _buildProfileOption(
                       context,
                       icon: Icons.edit_outlined,
-                      title: 'Edit Profile',
+                      title: Translations.get('edit_profile', lang),
                       onTap: () {
                         Navigator.push(
                           context,
@@ -69,8 +71,17 @@ class OperatorProfileScreen extends StatelessWidget {
 
                     _buildProfileOption(
                       context,
+                      icon: Icons.settings_outlined,
+                      title: Translations.get('settings', lang),
+                      onTap: () {
+                        Navigator.pushNamed(context, '/settings');
+                      },
+                      iconColor: Colors.grey.shade700,
+                    ),
+                    _buildProfileOption(
+                      context,
                       icon: Icons.help_outline,
-                      title: 'Help & Support',
+                      title: Translations.get('help_support', lang),
                       onTap: () {
                         Navigator.pushNamed(context, '/support');
                       },
@@ -85,7 +96,7 @@ class OperatorProfileScreen extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: () => Provider.of<AuthProvider>(context, listen: false).logout(),
                   icon: const Icon(Icons.logout, color: Colors.redAccent),
-                  label: Text('Log Out', style: GoogleFonts.inter(color: Colors.redAccent, fontWeight: FontWeight.w600)),
+                  label: Text(Translations.get('logout', lang), style: GoogleFonts.inter(color: Colors.redAccent, fontWeight: FontWeight.w600)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent.withOpacity(0.1),
                     elevation: 0,

@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/tractor_provider.dart';
 import '../services/booking_service.dart';
 import '../services/review_service.dart';
+import '../utils/translations.dart';
 
 class FarmerHomeScreen extends StatefulWidget {
   const FarmerHomeScreen({super.key});
@@ -40,14 +41,16 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext ctx) {
+        final isDark = Provider.of<AuthProvider>(context, listen: false).user?.darkMode ?? false;
+        final lang = Provider.of<AuthProvider>(context, listen: false).user?.language ?? 'en';
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState) {
             double estimatedPrice = _acres * 3000.0; // 3000 KES per acre
 
             return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey.shade900 : Colors.white,
+                borderRadius: const BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
               ),
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(ctx).viewInsets.bottom,
@@ -60,7 +63,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Book Tractor', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold)),
+                      Text(Translations.get('confirm_booking', lang), style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87)),
                       IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: () => Navigator.pop(ctx),
@@ -250,7 +253,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                                 }
                               }
                             },
-                            child: Text('Confirm Booking', style: GoogleFonts.inter(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                            child: Text(Translations.get('confirm_booking', lang), style: GoogleFonts.inter(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
                           ),
                         ),
                   const SizedBox(height: 32),
@@ -265,10 +268,11 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<AuthProvider>(context).user;
+    final isDark = user?.darkMode ?? false;
+    final lang = user?.language ?? 'en';
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: RefreshIndicator(
         color: Colors.green,
         onRefresh: () async {
@@ -285,7 +289,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
               flexibleSpace: FlexibleSpaceBar(
                 titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
                 title: Text(
-                  'Ready to farm, ${user?.name?.split(' ').first ?? "Farmer"}?',
+                  lang == 'en' ? 'Ready to farm, ${user?.name?.split(' ').first ?? "Farmer"}?' : 'Uko tayari kulima, ${user?.name?.split(' ').first ?? "Mkulima"}?',
                   style: GoogleFonts.outfit(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
@@ -318,7 +322,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                 padding: const EdgeInsets.all(20.0),
                 child: Text(
                   'Available Tractors',
-                  style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.black87),
+                  style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.w600, color: isDark ? Colors.white : Colors.black87),
                 ),
               ),
             ),
@@ -354,7 +358,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                         return Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: isDark ? Colors.grey.shade800 : Colors.white,
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),

@@ -5,6 +5,7 @@ import '../services/payment_service.dart';
 import '../services/socket_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../utils/translations.dart';
 
 class FarmerBookingsScreen extends StatefulWidget {
   const FarmerBookingsScreen({super.key});
@@ -29,19 +30,18 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       if (user != null) {
         _socketService.listenToNotifications(user.id!, 'farmer', (data) {
-          if (mounted) {
-            _fetchBookings(); // Refresh list to show new paid/cancelled status
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
-                content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
-                ],
-              ),
-            );
-          }
+          if (!mounted) return;
+          _fetchBookings(); // Refresh list to show new paid/cancelled status
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
+              content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+              ],
+            ),
+          );
         });
       }
     });
@@ -57,10 +57,11 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
   }
 
   Future<void> _fetchBookings() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final bookings = await _bookingService.getMyBookings();
-      setState(() => _bookings = bookings);
+      if (mounted) setState(() => _bookings = bookings);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -178,13 +179,16 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Provider.of<AuthProvider>(context).user?.language ?? 'en';
+    final isDark = Provider.of<AuthProvider>(context).user?.darkMode ?? false;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('My Bookings', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(Translations.get('bookings', lang), style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
       ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: Colors.green))
@@ -262,7 +266,7 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Total Price', style: GoogleFonts.inter(color: Colors.grey.shade600)),
+                              Text(Translations.get('payment', lang), style: GoogleFonts.inter(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
                               Text('KES ${b['price']}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green.shade700)),
                             ],
                           ),
@@ -272,7 +276,20 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                               children: [
                                 const Icon(Icons.access_time, size: 20, color: Colors.purple),
                                 const SizedBox(width: 8),
-                                Text('Starts: ${b['estimated_start_time']}', style: GoogleFonts.inter(color: Colors.purple, fontWeight: FontWeight.bold)),
+                                Text('${Translations.get('estimated_start', lang)}: ${b['estimated_start_time']}', style: GoogleFonts.inter(color: Colors.purple, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ],
+                          if (b['completed_at'] != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${Translations.get('completed', lang)}: ${DateTime.tryParse(b['completed_at'].toString())?.toLocal().toString().split('.')[0] ?? ''}',
+                                  style: GoogleFonts.inter(color: Colors.green.shade800, fontWeight: FontWeight.bold),
+                                ),
                               ],
                             ),
                           ],
