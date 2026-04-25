@@ -28,14 +28,28 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
       if (user != null) {
         _socketService.listenToNotifications(user.id!, 'operator', (data) {
           if (!mounted) return;
-          _fetchBookings(); // Refresh list to show new paid/cancelled status
+          _fetchBookings(); // Refresh list
+          
           showDialog(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  Icon(
+                    data['type'] == 'payment_received' ? Icons.account_balance_wallet : Icons.info_outline,
+                    color: Colors.blue,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                ],
+              ),
               content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text('UNDERSTOOD', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+                ),
               ],
             ),
           );

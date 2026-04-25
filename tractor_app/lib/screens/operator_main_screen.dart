@@ -29,12 +29,15 @@ class _OperatorMainScreenState extends State<OperatorMainScreen> {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       if (user != null) {
         SocketService().listenToUserNotifications(user.id, (data) {
-          if (mounted) {
+          if (!mounted) return;
+          
+          if (data['type'] != 'payment_received') {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('${data['title']}: ${data['message']}'),
                 backgroundColor: Colors.blue,
                 behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(20),
               ),
             );
           }

@@ -29,12 +29,17 @@ class _FarmerMainScreenState extends State<FarmerMainScreen> {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       if (user != null) {
         SocketService().listenToUserNotifications(user.id, (data) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
+          if (!mounted) return;
+          
+          // If it's a critical notification (like payment success), we might just rely on the Home Screen pop-up
+          // but for general notifications, a snackbar is fine.
+          if (data['type'] != 'payment_success') {
+             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('${data['title']}: ${data['message']}'),
                 backgroundColor: Colors.green,
                 behavior: SnackBarBehavior.floating,
+                margin: const EdgeInsets.all(20),
               ),
             );
           }
