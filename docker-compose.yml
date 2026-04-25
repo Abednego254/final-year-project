@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: tractor_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Ciumbe@254
+      POSTGRES_DB: tractor_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tractor_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: 
+      context: ./tractor-backend
+      dockerfile: Dockerfile
+    container_name: tractor_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./tractor-backend/.env
+    environment:
+      # Override the DB_HOST to point to the docker service name instead of localhost
+      DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  admin:
+    build:
+      context: ./tractor-admin
+      dockerfile: Dockerfile
+      args:
+        # The admin panel needs to know where the backend is when it's built
+        VITE_API_URL: http://localhost:5000/api
+    container_name: tractor_admin
+    restart: unless-stopped
+    ports:
+      # Map port 80 inside the container to 8080 on your host machine
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
