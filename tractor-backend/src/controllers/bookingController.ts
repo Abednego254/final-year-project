@@ -173,6 +173,26 @@ export const updateBookingStatus = async (req: AuthRequest, res: Response): Prom
             [status, id]
         );
 
+        // If status is 'ongoing', notify the farmer
+        if (status === 'ongoing') {
+            try {
+                await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        event: `farmer_${result.rows[0].farmer_id}_notification`,
+                        data: {
+                            title: 'Job Started',
+                            message: `The operator has started the job for booking #${id}.`,
+                            bookingId: id
+                        }
+                    })
+                });
+            } catch (e) {
+                console.error('Ongoing notification error:', e);
+            }
+        }
+
         // If cancelled, free up the tractor
         if (status === 'cancelled') {
             const tractor_id = result.rows[0].tractor_id;

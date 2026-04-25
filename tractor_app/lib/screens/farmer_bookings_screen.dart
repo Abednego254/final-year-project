@@ -374,28 +374,28 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                                )
                              )
                           ],
-                          if (b['status'] == 'paid' && b['estimated_start_time'] != null && !(b['farmer_completed'] == true)) ...[
+                          if (b['status'] == 'ongoing' && !(b['farmer_completed'] == true)) ...[
                              const SizedBox(height: 16),
                              if (b['operator_completed'] != true)
                                Container(
                                  padding: const EdgeInsets.all(12),
                                  decoration: BoxDecoration(
-                                   color: Colors.blue.shade50,
+                                   color: Colors.orange.shade50,
                                    borderRadius: BorderRadius.circular(8),
-                                   border: Border.all(color: Colors.blue.shade200)
+                                   border: Border.all(color: Colors.orange.shade200)
                                  ),
                                  child: Row(
                                    children: [
-                                     Icon(Icons.access_time, color: Colors.blue.shade600),
+                                     Icon(Icons.directions_run, color: Colors.orange.shade600),
                                      const SizedBox(width: 8),
-                                     Expanded(child: Text('Waiting for operator to complete the job before you can confirm.', style: GoogleFonts.inter(color: Colors.blue.shade800))),
+                                     Expanded(child: Text('Tractor is currently working on your farm!', style: GoogleFonts.inter(color: Colors.orange.shade800, fontWeight: FontWeight.bold))),
                                    ]
                                  )
                                )
                              else ...[
                                Padding(
                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                 child: Text('The operator has marked this job as finished. Please confirm.', style: GoogleFonts.inter(color: Colors.orange.shade800, fontWeight: FontWeight.w500)),
+                                 child: Text('The operator has finished! Please confirm to release their final payment.', style: GoogleFonts.inter(color: Colors.green.shade800, fontWeight: FontWeight.bold)),
                                ),
                                SizedBox(
                                 width: double.infinity,
@@ -407,10 +407,28 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     elevation: 0,
                                   ),
-                                  child: Text('Mark Job as Complete', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  child: Text('Confirm Job Completion', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                                 ),
                               ),
                              ],
+                          ],
+                          if (b['status'] == 'paid' && b['estimated_start_time'] != null && !(b['farmer_completed'] == true)) ...[
+                             const SizedBox(height: 16),
+                             Container(
+                               padding: const EdgeInsets.all(12),
+                               decoration: BoxDecoration(
+                                 color: Colors.blue.shade50,
+                                 borderRadius: BorderRadius.circular(8),
+                                 border: Border.all(color: Colors.blue.shade200)
+                               ),
+                               child: Row(
+                                 children: [
+                                   Icon(Icons.access_time, color: Colors.blue.shade600),
+                                   const SizedBox(width: 8),
+                                   Expanded(child: Text('Payment confirmed. Waiting for the operator to start the job.', style: GoogleFonts.inter(color: Colors.blue.shade800))),
+                                 ]
+                               )
+                             )
                           ]
                         ],
                       ),

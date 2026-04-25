@@ -49,7 +49,7 @@ const initDb = async () => {
       id SERIAL PRIMARY KEY,
       farmer_id INTEGER REFERENCES users(id),
       tractor_id INTEGER REFERENCES tractors(id),
-      status VARCHAR(20) DEFAULT 'pending', -- pending, accepted, paid, completed, cancelled
+      status VARCHAR(20) DEFAULT 'pending', -- pending, accepted, paid, ongoing, completed, cancelled
       price DECIMAL(10, 2),
       scheduled_date TIMESTAMP,
       estimated_start_time VARCHAR(100),

@@ -319,7 +319,21 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                     child: Text('Funds Received. Set Start Time', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                                   ),
                                 ),
-                              if (b['status'] == 'paid' && hasStartTime && !(b['operator_completed'] == true))
+                              if (b['status'] == 'paid' && hasStartTime)
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: ElevatedButton(
+                                    onPressed: () => _updateStatus(b['id'], 'ongoing'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      elevation: 0,
+                                    ),
+                                    child: Text('Start Job', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              if (b['status'] == 'ongoing' && !(b['operator_completed'] == true))
                                 SizedBox(
                                   width: double.infinity,
                                   height: 48,
