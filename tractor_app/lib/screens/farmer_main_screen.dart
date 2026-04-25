@@ -16,6 +16,7 @@ class FarmerMainScreen extends StatefulWidget {
 
 class _FarmerMainScreenState extends State<FarmerMainScreen> {
   int _currentIndex = 0;
+  int? _currentUserId;
   final List<Widget> _pages = [
     const FarmerHomeScreen(),
     const FarmerBookingsScreen(),
@@ -28,6 +29,7 @@ class _FarmerMainScreenState extends State<FarmerMainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       if (user != null) {
+        _currentUserId = user.id;
         SocketService().listenToUserNotifications(user.id, (data) {
           if (!mounted) return;
           
@@ -50,9 +52,8 @@ class _FarmerMainScreenState extends State<FarmerMainScreen> {
 
   @override
   void dispose() {
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
-    if (user != null) {
-      SocketService().stopListeningToNotifications(user.id, 'user');
+    if (_currentUserId != null) {
+      SocketService().stopListeningToNotifications(_currentUserId!, 'user');
     }
     super.dispose();
   }

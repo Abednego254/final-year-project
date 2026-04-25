@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { query } from './config/db';
+import { initNotificationService } from './services/notificationService';
 
 dotenv.config();
 
@@ -15,6 +16,8 @@ const io = new Server(httpServer, {
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   }
 });
+
+initNotificationService(io);
 
 // Middleware
 app.use(cors());
@@ -124,6 +127,23 @@ const initDb = async () => {
       value TEXT NOT NULL,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS wallets (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) UNIQUE,
+      balance DECIMAL(15, 2) DEFAULT 0.00,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS wallet_transactions (
+      id SERIAL PRIMARY KEY,
+      wallet_id INTEGER REFERENCES wallets(id),
+      amount DECIMAL(15, 2) NOT NULL,
+      type VARCHAR(20) NOT NULL, -- 'credit', 'debit'
+      description TEXT,
+      reference_id VARCHAR(100), -- booking_id or payout_id
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
   `;
   try {
     await query(tableQueries);
@@ -160,12 +180,9 @@ app.get('/health', async (req, res) => {
 // Internal endpoint to emit socket events from controllers
 app.post('/api/internal/notify', (req, res) => {
   const { event, data } = req.body;
-  if (event && data) {
-    io.emit(event, data);
-    res.json({ success: true });
-  } else {
-    res.status(400).json({ error: 'Missing event or data' });
-  }
+  const { sendNotification } = require('./services/notificationService');
+  sendNotification(event, data);
+  res.json({ success: true });
 });
 
 // WebSockets Implementation

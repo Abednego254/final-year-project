@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../services/operator_service.dart';
 import '../utils/translations.dart';
 import 'edit_profile_screen.dart';
+import 'support_messages_screen.dart';
 
 class OperatorProfileScreen extends StatelessWidget {
   const OperatorProfileScreen({super.key});
@@ -84,6 +85,15 @@ class OperatorProfileScreen extends StatelessWidget {
                       title: Translations.get('help_support', lang),
                       onTap: () {
                         Navigator.pushNamed(context, '/support');
+                      },
+                      iconColor: Colors.grey.shade700,
+                    ),
+                    _buildProfileOption(
+                      context,
+                      icon: Icons.history,
+                      title: 'Support History',
+                      onTap: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => const SupportMessagesScreen()));
                       },
                       iconColor: Colors.grey.shade700,
                     ),

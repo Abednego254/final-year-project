@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { query } from '../config/db';
+import { notifyUser } from '../services/notificationService';
 
 export const createBooking = async (req: AuthRequest, res: Response): Promise<void> => {
     const { tractor_id, scheduled_date, price } = req.body;
@@ -132,22 +133,33 @@ export const updateBookingStatus = async (req: AuthRequest, res: Response): Prom
                 // Release the rest of the operator funds
                 await query('UPDATE earnings SET second_half_paid = true WHERE booking_id = $1', [id]);
 
-                // Trigger simulated B2C for the second half
+                // Credit the wallet instead of immediate B2C for the second half
                 try {
                     const earningsResult = await query('SELECT operator_id, second_half FROM earnings WHERE booking_id = $1', [id]);
                     if (earningsResult.rows.length > 0) {
-                        const { triggerB2CPayout } = require('./payoutController');
-                        await triggerB2CPayout(id, earningsResult.rows[0].operator_id, earningsResult.rows[0].second_half, 'second_half');
+                        const { creditWallet } = require('../services/walletService');
+                        await creditWallet(
+                            earningsResult.rows[0].operator_id, 
+                            earningsResult.rows[0].second_half, 
+                            `Earnings (final 50%) for Booking #${id}`, 
+                            `BOOKING-${id}-H2`
+                        );
                     }
                 } catch (e) {
-                    console.error('Failed to trigger second-half payout simulation:', e);
+                    console.error('Failed to credit operator wallet (second-half):', e);
                 }
 
                 // Notify both parties that the job is fully complete
-                try {
-                    await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `farmer_${finalResult.rows[0].farmer_id}_notification`, data: { title: 'Job Completed', message: `Job #${id} is now fully completed. You can leave a review.`, bookingId: id } }) });
-                    await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `operator_${authCheck.rows[0].owner_id}_notification`, data: { title: 'Job Completed', message: `Job #${id} is fully completed. Your second half payment has been cleared.`, bookingId: id } }) });
-                } catch (e) { }
+                notifyUser(
+                    finalResult.rows[0].farmer_id, 
+                    'Job Completed', 
+                    `Job #${id} is now fully completed. You can leave a review.`
+                );
+                notifyUser(
+                    authCheck.rows[0].owner_id, 
+                    'Job Completed', 
+                    `Job #${id} is fully completed. Your second half payment has been cleared.`
+                );
 
                 res.json({ booking: finalResult.rows[0], fully_completed: true });
                 return;
@@ -155,13 +167,19 @@ export const updateBookingStatus = async (req: AuthRequest, res: Response): Prom
                 const current = await query('SELECT * FROM bookings WHERE id = $1', [id]);
 
                 // Notify the OTHER party that one side has marked it complete
-                try {
-                    if (userRole === 'operator') {
-                        await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `farmer_${current.rows[0].farmer_id}_notification`, data: { title: 'Action Required', message: `The operator marked job #${id} as completed. Please confirm this in your bookings to release their final payment.`, bookingId: id } }) });
-                    } else if (userRole === 'farmer') {
-                        await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `operator_${authCheck.rows[0].owner_id}_notification`, data: { title: 'Job Acknowledged', message: `The farmer confirmed job #${id} is completed.`, bookingId: id } }) });
-                    }
-                } catch (e) { }
+                if (userRole === 'operator') {
+                    notifyUser(
+                        current.rows[0].farmer_id,
+                        'Action Required',
+                        `The operator marked job #${id} as completed. Please confirm this in your bookings to release their final payment.`
+                    );
+                } else if (userRole === 'farmer') {
+                    notifyUser(
+                        authCheck.rows[0].owner_id,
+                        'Job Acknowledged',
+                        `The farmer confirmed job #${id} is completed.`
+                    );
+                }
 
                 res.json({ booking: current.rows[0], fully_completed: false });
                 return;
@@ -175,22 +193,13 @@ export const updateBookingStatus = async (req: AuthRequest, res: Response): Prom
 
         // If status is 'ongoing', notify the farmer
         if (status === 'ongoing') {
-            try {
-                await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        event: `farmer_${result.rows[0].farmer_id}_notification`,
-                        data: {
-                            title: 'Job Started',
-                            message: `The operator has started the job for booking #${id}.`,
-                            bookingId: id
-                        }
-                    })
-                });
-            } catch (e) {
-                console.error('Ongoing notification error:', e);
-            }
+            notifyUser(
+                result.rows[0].farmer_id,
+                'Job Started',
+                `The operator has started the job for booking #${id}.`,
+                'job_started',
+                { bookingId: id }
+            );
         }
 
         // If cancelled, free up the tractor

@@ -26,4 +26,22 @@ class SupportService {
       throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to send message');
     }
   }
+
+  Future<List<dynamic>> getMessages() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.get(
+      Uri.parse('${ApiConstants.baseUrl}/support/my-messages'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['messages'];
+    } else {
+      throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to fetch messages');
+    }
+  }
 }

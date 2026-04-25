@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { query } from '../config/db';
+import { notifyUser } from '../services/notificationService';
 
 export const sendMessageToAdmin = async (req: AuthRequest, res: Response): Promise<void> => {
     const { subject, content } = req.body;
@@ -15,6 +16,21 @@ export const sendMessageToAdmin = async (req: AuthRequest, res: Response): Promi
     } catch (error) {
         console.error('Send message error:', error);
         res.status(500).json({ message: 'Server error sending message.' });
+    }
+};
+
+export const getMyMessages = async (req: AuthRequest, res: Response): Promise<void> => {
+    const user_id = req.user?.id;
+    try {
+        const result = await query(`
+            SELECT * FROM messages 
+            WHERE user_id = $1 
+            ORDER BY created_at DESC
+        `, [user_id]);
+        res.json({ messages: result.rows });
+    } catch (error) {
+        console.error('Fetch my messages error:', error);
+        res.status(500).json({ message: 'Server error fetching your messages.' });
     }
 };
 
@@ -57,22 +73,12 @@ export const replyToMessage = async (req: AuthRequest, res: Response): Promise<v
         await query('UPDATE messages SET is_read = true WHERE id = $1', [messageId]);
 
         // Notify user via Socket.IO
-        try {
-            await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    event: `user_${user_id}_notification`,
-                    data: {
-                        title: 'New Support Reply',
-                        message: `Admin replied to your message: ${replyContent.substring(0, 50)}...`,
-                        type: 'support_reply'
-                    }
-                })
-            });
-        } catch (e) {
-            console.error('Socket notification error for support reply:', e);
-        }
+        notifyUser(
+            user_id,
+            'New Support Reply',
+            `Admin replied to your message: ${replyContent.substring(0, 50)}...`,
+            'support_reply'
+        );
 
         res.status(201).json({ reply: result.rows[0], success: true });
     } catch (error) {

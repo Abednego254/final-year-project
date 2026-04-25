@@ -5,6 +5,7 @@ import '../services/socket_service.dart';
 import 'operator_home_screen.dart';
 import 'operator_profile_screen.dart';
 import 'operator_tractors_screen.dart';
+import 'operator_wallet_screen.dart';
 import '../utils/translations.dart';
 
 class OperatorMainScreen extends StatefulWidget {
@@ -16,9 +17,11 @@ class OperatorMainScreen extends StatefulWidget {
 
 class _OperatorMainScreenState extends State<OperatorMainScreen> {
   int _currentIndex = 0;
+  int? _currentUserId;
   final List<Widget> _pages = [
     const OperatorHomeScreen(),
     const OperatorTractorsScreen(),
+    const OperatorWalletScreen(),
     const OperatorProfileScreen(),
   ];
 
@@ -28,6 +31,7 @@ class _OperatorMainScreenState extends State<OperatorMainScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       if (user != null) {
+        _currentUserId = user.id;
         SocketService().listenToUserNotifications(user.id, (data) {
           if (!mounted) return;
           
@@ -48,9 +52,8 @@ class _OperatorMainScreenState extends State<OperatorMainScreen> {
 
   @override
   void dispose() {
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
-    if (user != null) {
-      SocketService().stopListeningToNotifications(user.id, 'user');
+    if (_currentUserId != null) {
+      SocketService().stopListeningToNotifications(_currentUserId!, 'user');
     }
     super.dispose();
   }
@@ -74,6 +77,11 @@ class _OperatorMainScreenState extends State<OperatorMainScreen> {
             icon: const Icon(Icons.agriculture_outlined),
             selectedIcon: const Icon(Icons.agriculture),
             label: lang == 'en' ? 'My Tractors' : 'Trekta Zangu',
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: const Icon(Icons.account_balance_wallet),
+            label: lang == 'en' ? 'Wallet' : 'Mkoba',
           ),
           NavigationDestination(
             icon: const Icon(Icons.person_outline),

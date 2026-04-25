@@ -16,6 +16,7 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
   final OperatorService _operatorService = OperatorService();
   final SocketService _socketService = SocketService();
   List<dynamic> _bookings = [];
+  int? _currentUserId;
   bool _isLoading = true;
 
   @override
@@ -24,15 +25,19 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
     _fetchBookings();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = Provider.of<AuthProvider>(context, listen: false).user;
+      if (!mounted) return;
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final user = authProvider.user;
       if (user != null) {
+        _currentUserId = user.id;
         _socketService.listenToNotifications(user.id!, 'operator', (data) {
           if (!mounted) return;
           _fetchBookings(); // Refresh list
           
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               title: Row(
                 children: [
@@ -53,6 +58,7 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
               ],
             ),
           );
+          }
         });
       }
     });
@@ -60,9 +66,8 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
 
   @override
   void dispose() {
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
-    if (user != null) {
-      _socketService.stopListeningToNotifications(user.id!, 'operator');
+    if (_currentUserId != null) {
+      _socketService.stopListeningToNotifications(_currentUserId!, 'operator');
     }
     super.dispose();
   }
@@ -83,15 +88,18 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
   }
 
   Future<void> _updateStatus(int bookingId, String newStatus) async {
+    showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
+    
     try {
-      showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
-      await _operatorService.updateBookingStatus(bookingId, newStatus);
-      if (mounted) Navigator.pop(context); // close loading
+      await _operatorService.updateBookingStatus(bookingId, newStatus).timeout(const Duration(seconds: 20));
       _fetchBookings();
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // close loading
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e', style: GoogleFonts.inter()), backgroundColor: Colors.red));
+      }
+    } finally {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // Always close loading
       }
     }
   }
@@ -110,17 +118,17 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
+              if (timeController.text.isEmpty) return;
               Navigator.pop(ctx);
-              if (timeController.text.isNotEmpty) {
-                try {
-                  showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
-                  await _operatorService.updateBookingStartTime(bookingId, timeController.text);
-                  Navigator.pop(context);
-                  _fetchBookings();
-                } catch (e) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-                }
+              
+              showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
+              try {
+                await _operatorService.updateBookingStartTime(bookingId, timeController.text).timeout(const Duration(seconds: 20));
+                _fetchBookings();
+              } catch (e) {
+                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+              } finally {
+                if (mounted) Navigator.of(context, rootNavigator: true).pop();
               }
             },
             child: const Text('Save'),

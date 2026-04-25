@@ -19,7 +19,7 @@ export const getPayoutHistory = async (req: AuthRequest, res: Response): Promise
     }
 };
 
-export const triggerB2CPayout = async (booking_id: number, operator_id: number, amount: number, type: string) => {
+export const triggerB2CPayout = async (booking_id: number, operator_id: number, amount: number, type: string, phone?: string) => {
     try {
         const transaction_id = `B2C${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
         
@@ -28,7 +28,7 @@ export const triggerB2CPayout = async (booking_id: number, operator_id: number, 
             [booking_id, operator_id, amount, type, transaction_id, 'completed']
         );
 
-        console.log(`[SIMULATED B2C] Sent KES ${amount} to Operator #${operator_id} for Booking #${booking_id} (${type}). Transaction: ${transaction_id}`);
+        console.log(`[SIMULATED B2C] Sent KES ${amount} to ${phone || `Operator #${operator_id}`} for Booking #${booking_id} (${type}). Transaction: ${transaction_id}`);
         
         return transaction_id;
     } catch (error) {

@@ -19,6 +19,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
   final BookingService _bookingService = BookingService();
   final ReviewService _reviewService = ReviewService();
   final SocketService _socketService = SocketService();
+  int? _currentUserId;
 
   int? _selectedTractorId;
   double _acres = 1.0;
@@ -30,20 +31,23 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      Provider.of<TractorProvider>(context, listen: false).fetchAvailableTractors();
+      final tractorProvider = Provider.of<TractorProvider>(context, listen: false);
+      tractorProvider.fetchAvailableTractors();
       
       final user = authProvider.user;
       if (user != null) {
+        _currentUserId = user.id;
         _socketService.listenToNotifications(user.id, 'farmer', (data) {
           if (!mounted) return;
           
-          // Refresh data if needed
-          Provider.of<TractorProvider>(context, listen: false).fetchAvailableTractors();
+          // Refresh data safely
+          tractorProvider.fetchAvailableTractors();
           
-          // Show Pop-up
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
+          // Show Pop-up safely
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               title: Row(
                 children: [
@@ -61,6 +65,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
               ],
             ),
           );
+          }
         });
       }
     });
@@ -68,9 +73,8 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
 
   @override
   void dispose() {
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
-    if (user != null) {
-      _socketService.stopListeningToNotifications(user.id, 'farmer');
+    if (_currentUserId != null) {
+      _socketService.stopListeningToNotifications(_currentUserId!, 'farmer');
     }
     super.dispose();
   }
