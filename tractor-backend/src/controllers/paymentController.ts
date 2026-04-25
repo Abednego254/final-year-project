@@ -75,7 +75,7 @@ export const initiateStkPush = async (req: AuthRequest, res: Response): Promise<
                 PartyA: phone,
                 PartyB: shortcode,
                 PhoneNumber: phone,
-                CallBackURL: `${process.env.API_BASE_URL || 'http://localhost:5000'}/api/payments/callback`,
+                CallBackURL: process.env.MPESA_CALLBACK_URL || `${process.env.API_BASE_URL || 'http://localhost:5000'}/api/payments/callback`,
                 AccountReference: `BOOKING-${booking_id}`,
                 TransactionDesc: `Payment for tractor booking #${booking_id}`,
             },

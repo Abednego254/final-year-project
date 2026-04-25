@@ -106,7 +106,7 @@ const updateBookingStatus = async (req, res) => {
             // Check if both completed
             const updatedBooking = await (0, db_1.query)('SELECT farmer_completed, operator_completed, tractor_id FROM bookings WHERE id = $1', [id]);
             if (updatedBooking.rows[0].farmer_completed && updatedBooking.rows[0].operator_completed) {
-                const finalResult = await (0, db_1.query)('UPDATE bookings SET status = $1 WHERE id = $2 RETURNING *', ['completed', id]);
+                const finalResult = await (0, db_1.query)('UPDATE bookings SET status = $1, completed_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *', ['completed', id]);
                 // Free up the tractor
                 await (0, db_1.query)('UPDATE tractors SET status = $1 WHERE id = $2', ['available', updatedBooking.rows[0].tractor_id]);
                 // Release the rest of the operator funds
@@ -124,8 +124,8 @@ const updateBookingStatus = async (req, res) => {
                 }
                 // Notify both parties that the job is fully complete
                 try {
-                    await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `farmer_${finalResult.rows[0].farmer_id}_notification`, data: { title: 'Job Completed', message: `Job #${id} is now fully completed. You can leave a review.`, bookingId: id } }) });
-                    await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `operator_${authCheck.rows[0].owner_id}_notification`, data: { title: 'Job Completed', message: `Job #${id} is fully completed. Your second half payment has been cleared.`, bookingId: id } }) });
+                    await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `farmer_${finalResult.rows[0].farmer_id}_notification`, data: { title: 'Job Completed', message: `Job #${id} is now fully completed. You can leave a review.`, bookingId: id } }) });
+                    await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `operator_${authCheck.rows[0].owner_id}_notification`, data: { title: 'Job Completed', message: `Job #${id} is fully completed. Your second half payment has been cleared.`, bookingId: id } }) });
                 }
                 catch (e) { }
                 res.json({ booking: finalResult.rows[0], fully_completed: true });
@@ -136,10 +136,10 @@ const updateBookingStatus = async (req, res) => {
                 // Notify the OTHER party that one side has marked it complete
                 try {
                     if (userRole === 'operator') {
-                        await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `farmer_${current.rows[0].farmer_id}_notification`, data: { title: 'Action Required', message: `The operator marked job #${id} as completed. Please confirm this in your bookings to release their final payment.`, bookingId: id } }) });
+                        await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `farmer_${current.rows[0].farmer_id}_notification`, data: { title: 'Action Required', message: `The operator marked job #${id} as completed. Please confirm this in your bookings to release their final payment.`, bookingId: id } }) });
                     }
                     else if (userRole === 'farmer') {
-                        await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `operator_${authCheck.rows[0].owner_id}_notification`, data: { title: 'Job Acknowledged', message: `The farmer confirmed job #${id} is completed.`, bookingId: id } }) });
+                        await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `operator_${authCheck.rows[0].owner_id}_notification`, data: { title: 'Job Acknowledged', message: `The farmer confirmed job #${id} is completed.`, bookingId: id } }) });
                     }
                 }
                 catch (e) { }
@@ -151,7 +151,7 @@ const updateBookingStatus = async (req, res) => {
         // If status is 'ongoing', notify the farmer
         if (status === 'ongoing') {
             try {
-                await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, {
+                await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -175,10 +175,10 @@ const updateBookingStatus = async (req, res) => {
             // Notify the other party about the cancellation
             try {
                 if (req.user?.role === 'farmer') {
-                    await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `operator_${authCheck.rows[0].owner_id}_notification`, data: { title: 'Booking Cancelled', message: `The farmer has cancelled booking #${id}.`, bookingId: id } }) });
+                    await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `operator_${authCheck.rows[0].owner_id}_notification`, data: { title: 'Booking Cancelled', message: `The farmer has cancelled booking #${id}.`, bookingId: id } }) });
                 }
                 else if (req.user?.role === 'operator') {
-                    await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `farmer_${authCheck.rows[0].farmer_id}_notification`, data: { title: 'Booking Cancelled', message: `The operator has cancelled booking #${id}.`, bookingId: id } }) });
+                    await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: `farmer_${authCheck.rows[0].farmer_id}_notification`, data: { title: 'Booking Cancelled', message: `The operator has cancelled booking #${id}.`, bookingId: id } }) });
                 }
             }
             catch (e) {

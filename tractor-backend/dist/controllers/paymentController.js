@@ -62,7 +62,7 @@ const initiateStkPush = async (req, res) => {
             PartyA: phone,
             PartyB: shortcode,
             PhoneNumber: phone,
-            CallBackURL: `${process.env.API_BASE_URL || 'http://localhost:5000'}/api/payments/callback`,
+            CallBackURL: process.env.MPESA_CALLBACK_URL || `${process.env.API_BASE_URL || 'http://localhost:5000'}/api/payments/callback`,
             AccountReference: `BOOKING-${booking_id}`,
             TransactionDesc: `Payment for tractor booking #${booking_id}`,
         }, { headers: { Authorization: `Bearer ${token}` } });
@@ -114,7 +114,7 @@ const handleSuccessfulPaymentLogic = async (booking_id, paidAmount) => {
         }
         // Send Real-time notification to the Farmer confirming payment receipt
         try {
-            await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, {
+            await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -127,7 +127,7 @@ const handleSuccessfulPaymentLogic = async (booking_id, paidAmount) => {
                 })
             });
             if (operator_id) {
-                await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, {
+                await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -146,7 +146,7 @@ const handleSuccessfulPaymentLogic = async (booking_id, paidAmount) => {
         }
         // Send Real-time notification to the Admin about new earnings
         try {
-            await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, {
+            await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -171,7 +171,7 @@ const handleSuccessfulPaymentLogic = async (booking_id, paidAmount) => {
             await (0, db_1.query)(`UPDATE bookings SET status = 'cancelled' WHERE id = $1`, [pending.id]);
             // Send Real-time notification to the farmer whose booking was cancelled
             try {
-                const response = await fetch(`${process.env.API_BASE_URL || 'http://localhost:5000'}/api/internal/notify`, {
+                const response = await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

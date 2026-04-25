@@ -37,7 +37,7 @@ async function testStkPush() {
                 PartyA: phone,
                 PartyB: shortcode,
                 PhoneNumber: phone,
-                CallBackURL: `https://earnest-unfelled-carlene.ngrok-free.dev/api/payments/callback`,
+                CallBackURL: process.env.MPESA_CALLBACK_URL || `https://earnest-unfelled-carlene.ngrok-free.dev/api/payments/callback`,
                 AccountReference: `BOOKING-1`,
                 TransactionDesc: `Test Payment`,
             },
