@@ -17,8 +17,9 @@ import {
     getSystemSettings,
     updateSystemSettings
 } from '../controllers/adminController';
-import { sendMessageToAdmin, getMessages, replyToMessage } from '../controllers/supportController';
+import { sendMessageToAdmin, getMessages, replyToMessage, getMyMessages } from '../controllers/supportController';
 import { getPayoutHistory } from '../controllers/payoutController';
+import { getWalletData, getFullHistory, withdrawFunds } from '../controllers/walletController';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import { checkMaintenanceMode } from '../middleware/maintenance';
 
@@ -35,6 +36,7 @@ router.post('/auth/login', login);
 router.put('/users/profile', authenticateToken, updateProfile);
 router.put('/users/settings', authenticateToken, updateSettings);
 router.post('/support/message', authenticateToken, sendMessageToAdmin);
+router.get('/support/my-messages', authenticateToken, getMyMessages);
 
 // ──────────────────────────────────────
 // TRACTOR ROUTES
@@ -101,5 +103,12 @@ router.post('/admin/reply', authenticateToken, requireRole('admin'), replyToMess
 router.get('/admin/payouts', authenticateToken, requireRole('admin'), getPayoutHistory);
 router.get('/admin/settings', authenticateToken, requireRole('admin'), getSystemSettings);
 router.put('/admin/settings', authenticateToken, requireRole('admin'), updateSystemSettings);
+
+// ──────────────────────────────────────
+// WALLET ROUTES
+// ──────────────────────────────────────
+router.get('/wallet/balance', authenticateToken, getWalletData);
+router.get('/wallet/history', authenticateToken, getFullHistory);
+router.post('/wallet/withdraw', authenticateToken, requireRole('operator'), withdrawFunds);
 
 export default router;

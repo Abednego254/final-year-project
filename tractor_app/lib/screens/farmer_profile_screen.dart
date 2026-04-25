@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../utils/translations.dart';
+import 'support_messages_screen.dart';
 
 class FarmerProfileScreen extends StatelessWidget {
   const FarmerProfileScreen({super.key});
@@ -54,6 +55,14 @@ class FarmerProfileScreen extends StatelessWidget {
                 title: Translations.get('help_support', lang),
                 onTap: () {
                   Navigator.pushNamed(context, '/support');
+                },
+              ),
+              _buildProfileOption(
+                context,
+                icon: Icons.history,
+                title: 'Support History',
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => const SupportMessagesScreen()));
                 },
               ),
               const SizedBox(height: 24),

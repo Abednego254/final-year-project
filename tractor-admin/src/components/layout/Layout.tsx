@@ -45,7 +45,32 @@ const Layout = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 flex font-sans">
-            <Toaster position="top-right" reverseOrder={false} />
+            <Toaster 
+                position="top-right" 
+                reverseOrder={false} 
+                toastOptions={{
+                    success: {
+                        style: {
+                            background: '#16a34a', // text-green-600
+                            color: '#fff',
+                        },
+                        iconTheme: {
+                            primary: '#fff',
+                            secondary: '#16a34a',
+                        },
+                    },
+                    error: {
+                        style: {
+                            background: '#dc2626', // text-red-600
+                            color: '#fff',
+                        },
+                        iconTheme: {
+                            primary: '#fff',
+                            secondary: '#dc2626',
+                        },
+                    },
+                }}
+            />
             
             {/* Mobile sidebar backdrop */}
             {sidebarOpen && (

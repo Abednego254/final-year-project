@@ -7,6 +7,9 @@ import toast from 'react-hot-toast';
 const SupportMessages = () => {
     const [messages, setMessages] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [replyingTo, setReplyingTo] = useState<number | null>(null);
+    const [replyContent, setReplyContent] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         fetchMessages();
@@ -23,16 +26,23 @@ const SupportMessages = () => {
         }
     };
 
-    const handleReply = async (messageId: number) => {
-        const replyContent = prompt('Enter your response to the user:');
-        if (!replyContent) return;
+    const submitReply = async (messageId: number) => {
+        if (!replyContent.trim()) {
+            toast.error('Please enter a response');
+            return;
+        }
 
+        setSubmitting(true);
         try {
             await api.post('/admin/reply', { messageId, replyContent });
             toast.success('Response sent successfully');
+            setReplyingTo(null);
+            setReplyContent('');
             fetchMessages();
         } catch (err) {
             toast.error('Failed to send response');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -87,14 +97,52 @@ const SupportMessages = () => {
                                     </div>
                                     
                                     {!message.admin_id ? (
-                                        <div className="mt-5 flex justify-end">
-                                            <button 
-                                                onClick={() => handleReply(message.id)}
-                                                className="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-bold rounded-xl shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors"
-                                            >
-                                                <MessageSquare className="mr-2 h-4 w-4" />
-                                                Reply to User
-                                            </button>
+                                        <div className="mt-5">
+                                            {replyingTo === message.id ? (
+                                                <div className="bg-white border border-brand-200 rounded-xl p-4 shadow-sm">
+                                                    <label htmlFor={`reply-${message.id}`} className="block text-sm font-semibold text-gray-700 mb-2">Your Response</label>
+                                                    <textarea
+                                                        id={`reply-${message.id}`}
+                                                        rows={3}
+                                                        className="block w-full rounded-lg border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm p-3 border"
+                                                        placeholder="Type your reply here..."
+                                                        value={replyContent}
+                                                        onChange={(e) => setReplyContent(e.target.value)}
+                                                    />
+                                                    <div className="mt-3 flex justify-end gap-3">
+                                                        <button
+                                                            onClick={() => {
+                                                                setReplyingTo(null);
+                                                                setReplyContent('');
+                                                            }}
+                                                            className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                        <button
+                                                            onClick={() => submitReply(message.id)}
+                                                            disabled={submitting}
+                                                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none transition-colors disabled:opacity-50"
+                                                        >
+                                                            {submitting ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : <MessageSquare className="mr-2 h-4 w-4" />}
+                                                            Send Reply
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex justify-end">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setReplyingTo(message.id);
+                                                            setReplyContent('');
+                                                        }}
+                                                        className="inline-flex items-center px-5 py-2.5 border border-transparent text-sm font-bold rounded-xl shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 transition-colors"
+                                                    >
+                                                        <MessageSquare className="mr-2 h-4 w-4" />
+                                                        Reply to User
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                     ) : (
                                         <div className="mt-5 flex justify-end">

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import axios from 'axios';
 import { AuthRequest } from '../middleware/auth';
 import { query } from '../config/db';
+import { notifyUser, sendNotification } from '../services/notificationService';
 
 const getMpesaToken = async (): Promise<string> => {
     const key = process.env.MPESA_CONSUMER_KEY;
@@ -131,84 +132,47 @@ const handleSuccessfulPaymentLogic = async (booking_id: number, paidAmount: numb
                 [booking_id, operator_id, paidAmount, systemFee, operatorHalf, operatorHalf, true, false]
             );
 
-            // Trigger simulated B2C for the first half
+            // Credit the wallet instead of immediate B2C
             try {
-                const { triggerB2CPayout } = require('./payoutController');
-                await triggerB2CPayout(booking_id, operator_id, operatorHalf, 'first_half');
+                const { creditWallet } = require('../services/walletService');
+                await creditWallet(
+                    operator_id, 
+                    operatorHalf, 
+                    `Earnings (50% upfront) for Booking #${booking_id}`, 
+                    `BOOKING-${booking_id}-H1`
+                );
             } catch (e) {
-                console.error('Failed to trigger first-half payout simulation:', e);
+                console.error('Failed to credit operator wallet (first-half):', e);
             }
         }
 
         // Send Real-time notification to the Farmer confirming payment receipt
-        try {
-            const farmerNotify = {
-                event: `farmer_${farmer_id}_notification`,
-                data: {
-                    title: 'Payment Received',
-                    message: `Your payment of KES ${paidAmount} for booking #${booking_id} was successful!`,
-                    bookingId: booking_id,
-                    type: 'payment_success'
-                }
-            };
-            
-            // Emit to both role-specific and unified user channel
-            await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(farmerNotify)
-            });
-            
-            await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...farmerNotify, event: `user_${farmer_id}_notification` })
-            });
+        // Send Real-time notification to the Farmer confirming payment receipt
+        notifyUser(
+            farmer_id,
+            'Payment Received',
+            `Your payment of KES ${paidAmount} for booking #${booking_id} was successful!`,
+            'payment_success',
+            { bookingId: booking_id }
+        );
 
-            if (operator_id) {
-                const operatorNotify = {
-                    event: `operator_${operator_id}_notification`,
-                    data: {
-                        title: 'Payment Received',
-                        message: `The farmer paid KES ${paidAmount} for booking #${booking_id}. Please set the estimated start time!`,
-                        bookingId: booking_id,
-                        type: 'payment_received'
-                    }
-                };
-
-                await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(operatorNotify)
-                });
-
-                await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...operatorNotify, event: `user_${operator_id}_notification` })
-                });
-            }
-        } catch (e) {
-            console.error('Socket notification trigger error for farmer/operator payment:', e);
+        if (operator_id) {
+            notifyUser(
+                operator_id,
+                'Payment Received',
+                `The farmer paid KES ${paidAmount} for booking #${booking_id}. Please set the estimated start time!`,
+                'payment_received',
+                { bookingId: booking_id }
+            );
         }
 
         // Send Real-time notification to the Admin about new earnings
-        try {
-            await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    event: `admin_notification`,
-                    data: {
-                        title: 'New System Earning',
-                        message: `System earned KES ${systemFee.toFixed(2)} from booking #${booking_id}.`,
-                        bookingId: booking_id
-                    }
-                })
-            });
-        } catch (e) {
-            console.error('Socket notification trigger error for admin:', e);
-        }
+        // Send Real-time notification to the Admin about new earnings
+        sendNotification('admin_notification', {
+            title: 'New System Earning',
+            message: `System earned KES ${systemFee.toFixed(2)} from booking #${booking_id}.`,
+            bookingId: booking_id
+        });
 
         // Set tractor to busy immediately
         await query(`UPDATE tractors SET status = 'busy' WHERE id = $1`, [tractor_id]);
@@ -224,25 +188,13 @@ const handleSuccessfulPaymentLogic = async (booking_id: number, paidAmount: numb
             await query(`UPDATE bookings SET status = 'cancelled' WHERE id = $1`, [pending.id]);
 
             // Send Real-time notification to the farmer whose booking was cancelled
-            try {
-                const response = await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        event: `farmer_${pending.farmer_id}_notification`,
-                        data: {
-                            title: 'Booking Cancelled',
-                            message: 'The tractor you booked was just paid for by another farmer. Your booking has been cancelled.',
-                            bookingId: pending.id
-                        }
-                    })
-                });
-                if (!response.ok) {
-                    console.warn(`Failed to trigger notification for farmer ${pending.farmer_id}`);
-                }
-            } catch (e) {
-                console.error('Socket notification trigger error:', e);
-            }
+            notifyUser(
+                pending.farmer_id,
+                'Booking Cancelled',
+                'The tractor you booked was just paid for by another farmer. Your booking has been cancelled.',
+                'booking_cancelled',
+                { bookingId: pending.id }
+            );
         }
     }
 };

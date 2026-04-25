@@ -20,6 +20,9 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
   final SocketService _socketService = SocketService();
   List<dynamic> _bookings = [];
   bool _isLoading = true;
+  int? _currentUserId;
+  final Map<int, DateTime> _verifyCooldowns = {};
+  int? _verifyingBookingId;
 
   @override
   void initState() {
@@ -27,21 +30,33 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
     _fetchBookings();
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       if (user != null) {
+        _currentUserId = user.id;
         _socketService.listenToNotifications(user.id!, 'farmer', (data) {
           if (!mounted) return;
+          
+          // If we are already verifying this booking, don't show a redundant pop-up
+          if (_verifyingBookingId != null && data['bookingId']?.toString() == _verifyingBookingId.toString()) {
+            _fetchBookings(); // Still refresh background data
+            return;
+          }
+
           _fetchBookings(); // Refresh list to show new paid/cancelled status
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
-              content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
-              ],
-            ),
-          );
+          
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
+                content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+                ],
+              ),
+            );
+          }
         });
       }
     });
@@ -72,15 +87,19 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
   }
 
   Future<void> _updateStatus(int bookingId, String newStatus) async {
+    // Show loading
+    showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
+    
     try {
-      showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
-      await _bookingService.updateBookingStatus(bookingId, newStatus);
-      if (mounted) Navigator.pop(context); // close loading
+      await _bookingService.updateBookingStatus(bookingId, newStatus).timeout(const Duration(seconds: 20));
       _fetchBookings();
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context); // close loading
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e', style: GoogleFonts.inter()), backgroundColor: Colors.red));
+      }
+    } finally {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop(); // Always close loading
       }
     }
   }
@@ -149,11 +168,30 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
   }
 
   void _verifyPayment(int bookingId) async {
+    // Check for cooldown
+    if (_verifyCooldowns.containsKey(bookingId)) {
+      final diff = DateTime.now().difference(_verifyCooldowns[bookingId]!);
+      if (diff.inSeconds < 30) {
+        final remaining = 30 - diff.inSeconds;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Please wait $remaining seconds before verifying again (M-Pesa rate limit).'),
+          backgroundColor: Colors.orange.shade800,
+        ));
+        return;
+      }
+    }
+
+    // Set cooldown
+    setState(() {
+      _verifyCooldowns[bookingId] = DateTime.now();
+      _verifyingBookingId = bookingId;
+    });
+
+    showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.purple)), barrierDismissible: false);
+    
     try {
-      showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.purple)), barrierDismissible: false);
-      final res = await _paymentService.verifyPayment(bookingId);
+      final res = await _paymentService.verifyPayment(bookingId).timeout(const Duration(seconds: 20));
       if (!mounted) return;
-      Navigator.pop(context); // close loading
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(res['message'] ?? 'Verified.', style: GoogleFonts.inter()), 
         backgroundColor: (res['message'] ?? '').toString().toLowerCase().contains('success') ? Colors.green : Colors.blue
@@ -161,8 +199,12 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
       _fetchBookings();
     } catch (e) {
       if (!mounted) return;
-      Navigator.pop(context); // close loading
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString(), style: GoogleFonts.inter()), backgroundColor: Colors.red));
+    } finally {
+      if (mounted) {
+        setState(() => _verifyingBookingId = null);
+        Navigator.of(context, rootNavigator: true).pop(); // Always close loading
+      }
     }
   }
 
