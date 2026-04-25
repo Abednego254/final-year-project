@@ -4,7 +4,14 @@ import { AuthRequest } from '../middleware/auth';
 import { query } from '../config/db';
 import { notifyUser, sendNotification } from '../services/notificationService';
 
+let cachedToken: string | null = null;
+let tokenExpiryTime: number | null = null;
+
 const getMpesaToken = async (): Promise<string> => {
+    if (cachedToken && tokenExpiryTime && Date.now() < tokenExpiryTime - 60000) {
+        return cachedToken;
+    }
+
     const key = process.env.MPESA_CONSUMER_KEY;
     const secret = process.env.MPESA_CONSUMER_SECRET;
     const credentials = Buffer.from(`${key}:${secret}`).toString('base64');
@@ -17,7 +24,13 @@ const getMpesaToken = async (): Promise<string> => {
         `${baseUrl}/oauth/v1/generate?grant_type=client_credentials`,
         { headers: { Authorization: `Basic ${credentials}` } }
     );
-    return response.data.access_token;
+    
+    cachedToken = response.data.access_token;
+    // Daraja usually returns expires_in as a string, e.g., "3599"
+    const expiresIn = parseInt(response.data.expires_in || "3599", 10);
+    tokenExpiryTime = Date.now() + (expiresIn * 1000);
+
+    return cachedToken;
 };
 
 // POST /api/payments/stk-push
@@ -98,6 +111,13 @@ export const initiateStkPush = async (req: AuthRequest, res: Response): Promise<
             checkoutRequestId,
         });
     } catch (error: any) {
+        if (error.response && error.response.data) {
+            const errorMessage = error.response.data.errorMessage || error.response.data.fault?.faultstring || '';
+            if (errorMessage.includes('Spike arrest violation')) {
+                res.status(429).json({ message: 'Safaricom API is currently processing too many requests. Please wait a minute before trying again.' });
+                return;
+            }
+        }
         console.error('STK Push error:', error?.response?.data || error.message);
         res.status(500).json({ message: 'Payment initiation failed. Please try again.' });
     }
@@ -344,8 +364,15 @@ export const verifyPayment = async (req: AuthRequest, res: Response): Promise<vo
                 res.status(429).json({ message: 'Safaricom rate limit reached. Please wait 60 seconds before verifying again.' });
                 return;
             }
+            
+            const errorMessage = error.response.data.errorMessage || error.response.data.fault?.faultstring || 'Failed to query M-Pesa';
+            if (errorMessage.includes('Spike arrest violation')) {
+                res.status(429).json({ message: 'Safaricom API is currently processing too many requests. Please wait a minute before trying again.' });
+                return;
+            }
+
             console.error('STK Query error data:', error.response.data);
-            res.status(400).json({ message: error.response.data.errorMessage || error.response.data.fault?.faultstring || 'Failed to query M-Pesa' });
+            res.status(400).json({ message: errorMessage });
         } else {
             console.error('STK Query error:', error);
             res.status(500).json({ message: 'Error verifying payment status.' });
