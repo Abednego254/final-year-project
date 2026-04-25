@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateProfile = void 0;
+exports.updateSettings = exports.updateProfile = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const db_1 = require("../config/db");
 const updateProfile = async (req, res) => {
@@ -47,3 +47,20 @@ const updateProfile = async (req, res) => {
     }
 };
 exports.updateProfile = updateProfile;
+const updateSettings = async (req, res) => {
+    const { push_notifications, sms_alerts, language, dark_mode } = req.body;
+    const userId = req.user?.id;
+    if (!userId) {
+        res.status(401).json({ message: 'Unauthorized.' });
+        return;
+    }
+    try {
+        const result = await (0, db_1.query)('UPDATE users SET push_notifications = $1, sms_alerts = $2, language = $3, dark_mode = $4 WHERE id = $5 RETURNING push_notifications, sms_alerts, language, dark_mode', [push_notifications, sms_alerts, language, dark_mode, userId]);
+        res.json({ settings: result.rows[0], message: 'Settings updated successfully.' });
+    }
+    catch (error) {
+        console.error('Update settings error:', error);
+        res.status(500).json({ message: 'Server error updating settings.' });
+    }
+};
+exports.updateSettings = updateSettings;

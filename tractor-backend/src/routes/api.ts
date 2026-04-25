@@ -69,6 +69,7 @@ router.put('/bookings/:id/start-time', authenticateToken, checkMaintenanceMode, 
 // GET    /api/payments/status/:bookingId    → farmer: check payment status
 router.post('/payments/stk-push', authenticateToken, requireRole('farmer'), initiateStkPush);
 router.post('/payments/callback', mpesaCallback);                          // Safaricom hits this
+router.post('/mpesa/callbacks', mpesaCallback);                           // Alias for flexibility
 router.get('/payments/status/:bookingId', authenticateToken, getPaymentStatus);
 router.get('/payments/verify/:bookingId', authenticateToken, verifyPayment);
 

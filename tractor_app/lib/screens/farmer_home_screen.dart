@@ -268,6 +268,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<AuthProvider>(context).user;
     final isDark = user?.darkMode ?? false;
     final lang = user?.language ?? 'en';
 

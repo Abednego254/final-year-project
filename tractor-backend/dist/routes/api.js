@@ -22,6 +22,7 @@ const router = (0, express_1.Router)();
 router.post('/auth/register', authController_1.register);
 router.post('/auth/login', authController_1.login);
 router.put('/users/profile', auth_1.authenticateToken, userController_1.updateProfile);
+router.put('/users/settings', auth_1.authenticateToken, userController_1.updateSettings);
 router.post('/support/message', auth_1.authenticateToken, supportController_1.sendMessageToAdmin);
 // ──────────────────────────────────────
 // TRACTOR ROUTES
@@ -54,6 +55,7 @@ router.put('/bookings/:id/start-time', auth_1.authenticateToken, maintenance_1.c
 // GET    /api/payments/status/:bookingId    → farmer: check payment status
 router.post('/payments/stk-push', auth_1.authenticateToken, (0, auth_1.requireRole)('farmer'), paymentController_1.initiateStkPush);
 router.post('/payments/callback', paymentController_1.mpesaCallback); // Safaricom hits this
+router.post('/mpesa/callbacks', paymentController_1.mpesaCallback); // Alias for flexibility
 router.get('/payments/status/:bookingId', auth_1.authenticateToken, paymentController_1.getPaymentStatus);
 router.get('/payments/verify/:bookingId', auth_1.authenticateToken, paymentController_1.verifyPayment);
 // ──────────────────────────────────────
