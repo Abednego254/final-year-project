@@ -142,31 +142,50 @@ const handleSuccessfulPaymentLogic = async (booking_id: number, paidAmount: numb
 
         // Send Real-time notification to the Farmer confirming payment receipt
         try {
+            const farmerNotify = {
+                event: `farmer_${farmer_id}_notification`,
+                data: {
+                    title: 'Payment Received',
+                    message: `Your payment of KES ${paidAmount} for booking #${booking_id} was successful!`,
+                    bookingId: booking_id,
+                    type: 'payment_success'
+                }
+            };
+            
+            // Emit to both role-specific and unified user channel
             await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    event: `farmer_${farmer_id}_notification`,
-                    data: {
-                        title: 'Payment Received',
-                        message: `Your payment of KES ${paidAmount} for booking #${booking_id} was successful!`,
-                        bookingId: booking_id
-                    }
-                })
+                body: JSON.stringify(farmerNotify)
+            });
+            
+            await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...farmerNotify, event: `user_${farmer_id}_notification` })
             });
 
             if (operator_id) {
+                const operatorNotify = {
+                    event: `operator_${operator_id}_notification`,
+                    data: {
+                        title: 'Payment Received',
+                        message: `The farmer paid KES ${paidAmount} for booking #${booking_id}. Please set the estimated start time!`,
+                        bookingId: booking_id,
+                        type: 'payment_received'
+                    }
+                };
+
                 await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        event: `operator_${operator_id}_notification`,
-                        data: {
-                            title: 'Payment Received',
-                            message: `The farmer paid KES ${paidAmount} for booking #${booking_id}. Please set the estimated start time!`,
-                            bookingId: booking_id
-                        }
-                    })
+                    body: JSON.stringify(operatorNotify)
+                });
+
+                await fetch(`http://localhost:${process.env.PORT || 5000}/api/internal/notify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...operatorNotify, event: `user_${operator_id}_notification` })
                 });
             }
         } catch (e) {
@@ -369,8 +388,12 @@ export const verifyPayment = async (req: AuthRequest, res: Response): Promise<vo
                 res.status(400).json({ message: 'Transaction is being processed. Please wait and try again.' });
                 return;
             }
+            if (error.response.data.detail?.errorcode === 'policies.ratelimit.SpikeArrestViolation') {
+                res.status(429).json({ message: 'Safaricom rate limit reached. Please wait 60 seconds before verifying again.' });
+                return;
+            }
             console.error('STK Query error data:', error.response.data);
-            res.status(400).json({ message: error.response.data.errorMessage || 'Failed to query M-Pesa' });
+            res.status(400).json({ message: error.response.data.errorMessage || error.response.data.fault?.faultstring || 'Failed to query M-Pesa' });
         } else {
             console.error('STK Query error:', error);
             res.status(500).json({ message: 'Error verifying payment status.' });

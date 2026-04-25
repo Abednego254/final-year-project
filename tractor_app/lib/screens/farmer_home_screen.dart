@@ -5,6 +5,7 @@ import '../providers/auth_provider.dart';
 import '../providers/tractor_provider.dart';
 import '../services/booking_service.dart';
 import '../services/review_service.dart';
+import '../services/socket_service.dart';
 import '../utils/translations.dart';
 
 class FarmerHomeScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class FarmerHomeScreen extends StatefulWidget {
 class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
   final BookingService _bookingService = BookingService();
   final ReviewService _reviewService = ReviewService();
+  final SocketService _socketService = SocketService();
 
   int? _selectedTractorId;
   double _acres = 1.0;
@@ -27,8 +29,50 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       Provider.of<TractorProvider>(context, listen: false).fetchAvailableTractors();
+      
+      final user = authProvider.user;
+      if (user != null) {
+        _socketService.listenToNotifications(user.id, 'farmer', (data) {
+          if (!mounted) return;
+          
+          // Refresh data if needed
+          Provider.of<TractorProvider>(context, listen: false).fetchAvailableTractors();
+          
+          // Show Pop-up
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              title: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green, size: 28),
+                  const SizedBox(width: 12),
+                  Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: Text(data['message'] ?? 'Action completed.', style: GoogleFonts.inter()),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text('GREAT!', style: GoogleFonts.inter(fontWeight: FontWeight.bold, color: Colors.green)),
+                ),
+              ],
+            ),
+          );
+        });
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user != null) {
+      _socketService.stopListeningToNotifications(user.id, 'farmer');
+    }
+    super.dispose();
   }
 
   void _showBookingSheet(BuildContext context, dynamic tractor) {
