@@ -5,6 +5,7 @@ import '../services/payment_service.dart';
 import '../services/socket_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../utils/translations.dart';
 
 class FarmerBookingsScreen extends StatefulWidget {
   const FarmerBookingsScreen({super.key});
@@ -29,19 +30,18 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       if (user != null) {
         _socketService.listenToNotifications(user.id!, 'farmer', (data) {
-          if (mounted) {
-            _fetchBookings(); // Refresh list to show new paid/cancelled status
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
-                content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
-                ],
-              ),
-            );
-          }
+          if (!mounted) return;
+          _fetchBookings(); // Refresh list to show new paid/cancelled status
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
+              content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+              ],
+            ),
+          );
         });
       }
     });
@@ -57,10 +57,11 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
   }
 
   Future<void> _fetchBookings() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final bookings = await _bookingService.getMyBookings();
-      setState(() => _bookings = bookings);
+      if (mounted) setState(() => _bookings = bookings);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -178,13 +179,16 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final lang = Provider.of<AuthProvider>(context).user?.language ?? 'en';
+    final isDark = Provider.of<AuthProvider>(context).user?.darkMode ?? false;
+
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('My Bookings', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        title: Text(Translations.get('bookings', lang), style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        foregroundColor: isDark ? Colors.white : Colors.black87,
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
       ),
       body: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: Colors.green))
@@ -262,7 +266,7 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Total Price', style: GoogleFonts.inter(color: Colors.grey.shade600)),
+                              Text(Translations.get('payment', lang), style: GoogleFonts.inter(color: isDark ? Colors.grey.shade400 : Colors.grey.shade600)),
                               Text('KES ${b['price']}', style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green.shade700)),
                             ],
                           ),
@@ -272,7 +276,20 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                               children: [
                                 const Icon(Icons.access_time, size: 20, color: Colors.purple),
                                 const SizedBox(width: 8),
-                                Text('Starts: ${b['estimated_start_time']}', style: GoogleFonts.inter(color: Colors.purple, fontWeight: FontWeight.bold)),
+                                Text('${Translations.get('estimated_start', lang)}: ${b['estimated_start_time']}', style: GoogleFonts.inter(color: Colors.purple, fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ],
+                          if (b['completed_at'] != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '${Translations.get('completed', lang)}: ${DateTime.tryParse(b['completed_at'].toString())?.toLocal().toString().split('.')[0] ?? ''}',
+                                  style: GoogleFonts.inter(color: Colors.green.shade800, fontWeight: FontWeight.bold),
+                                ),
                               ],
                             ),
                           ],
@@ -374,28 +391,28 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                                )
                              )
                           ],
-                          if (b['status'] == 'paid' && b['estimated_start_time'] != null && !(b['farmer_completed'] == true)) ...[
+                          if (b['status'] == 'ongoing' && !(b['farmer_completed'] == true)) ...[
                              const SizedBox(height: 16),
                              if (b['operator_completed'] != true)
                                Container(
                                  padding: const EdgeInsets.all(12),
                                  decoration: BoxDecoration(
-                                   color: Colors.blue.shade50,
+                                   color: Colors.orange.shade50,
                                    borderRadius: BorderRadius.circular(8),
-                                   border: Border.all(color: Colors.blue.shade200)
+                                   border: Border.all(color: Colors.orange.shade200)
                                  ),
                                  child: Row(
                                    children: [
-                                     Icon(Icons.access_time, color: Colors.blue.shade600),
+                                     Icon(Icons.directions_run, color: Colors.orange.shade600),
                                      const SizedBox(width: 8),
-                                     Expanded(child: Text('Waiting for operator to complete the job before you can confirm.', style: GoogleFonts.inter(color: Colors.blue.shade800))),
+                                     Expanded(child: Text('Tractor is currently working on your farm!', style: GoogleFonts.inter(color: Colors.orange.shade800, fontWeight: FontWeight.bold))),
                                    ]
                                  )
                                )
                              else ...[
                                Padding(
                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                 child: Text('The operator has marked this job as finished. Please confirm.', style: GoogleFonts.inter(color: Colors.orange.shade800, fontWeight: FontWeight.w500)),
+                                 child: Text('The operator has finished! Please confirm to release their final payment.', style: GoogleFonts.inter(color: Colors.green.shade800, fontWeight: FontWeight.bold)),
                                ),
                                SizedBox(
                                 width: double.infinity,
@@ -407,10 +424,28 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                                     elevation: 0,
                                   ),
-                                  child: Text('Mark Job as Complete', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  child: Text('Confirm Job Completion', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                                 ),
                               ),
                              ],
+                          ],
+                          if (b['status'] == 'paid' && b['estimated_start_time'] != null && !(b['farmer_completed'] == true)) ...[
+                             const SizedBox(height: 16),
+                             Container(
+                               padding: const EdgeInsets.all(12),
+                               decoration: BoxDecoration(
+                                 color: Colors.blue.shade50,
+                                 borderRadius: BorderRadius.circular(8),
+                                 border: Border.all(color: Colors.blue.shade200)
+                               ),
+                               child: Row(
+                                 children: [
+                                   Icon(Icons.access_time, color: Colors.blue.shade600),
+                                   const SizedBox(width: 8),
+                                   Expanded(child: Text('Payment confirmed. Waiting for the operator to start the job.', style: GoogleFonts.inter(color: Colors.blue.shade800))),
+                                 ]
+                               )
+                             )
                           ]
                         ],
                       ),

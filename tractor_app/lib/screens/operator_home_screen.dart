@@ -27,19 +27,18 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
       final user = Provider.of<AuthProvider>(context, listen: false).user;
       if (user != null) {
         _socketService.listenToNotifications(user.id!, 'operator', (data) {
-          if (mounted) {
-            _fetchBookings(); // Refresh list to show new paid/cancelled status
-            showDialog(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
-                content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
-                actions: [
-                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
-                ],
-              ),
-            );
-          }
+          if (!mounted) return;
+          _fetchBookings(); // Refresh list to show new paid/cancelled status
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(data['title'] ?? 'Notice', style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: Colors.blue)),
+              content: Text(data['message'] ?? 'Booking updated.', style: GoogleFonts.inter()),
+              actions: [
+                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+              ],
+            ),
+          );
         });
       }
     });
@@ -55,10 +54,11 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
   }
 
   Future<void> _fetchBookings() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final bookings = await _operatorService.getOperatorBookings();
-      setState(() => _bookings = bookings);
+      if (mounted) setState(() => _bookings = bookings);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
@@ -245,14 +245,22 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                     ],
                                   ),
                                 ),
-                              if (b['status'] == 'paid' || b['status'] == 'completed')
+                              if (b['status'] == 'paid' || b['status'] == 'completed' || b['status'] == 'ongoing')
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 4.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  padding: const EdgeInsets.only(top: 8.0, bottom: 4.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text('Your Earnings (90%)', style: GoogleFonts.inter(color: Colors.purple.shade600, fontWeight: FontWeight.w500)),
-                                      Text('KES ${(double.parse(b['price'].toString()) * 0.9).toStringAsFixed(2)}', style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.purple.shade700)),
+                                      Text('Payment Breakdown:', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.purple.shade800)),
+                                      const SizedBox(height: 4),
+                                      _buildPayoutRow('Total Price', 'KES ${b['price']}', isBold: true),
+                                      _buildPayoutRow('System Fee (10%)', '- KES ${(double.parse(b['price'].toString()) * 0.1).toStringAsFixed(2)}', color: Colors.red.shade400),
+                                      _buildPayoutRow('Operator Net', 'KES ${(double.parse(b['price'].toString()) * 0.9).toStringAsFixed(2)}', color: Colors.green.shade700),
+                                      const Divider(height: 12),
+                                      Text(
+                                        'Note: You get 50% (KES ${(double.parse(b['price'].toString()) * 0.45).toStringAsFixed(2)}) upfront on receipt, and the remaining 50% after job completion.',
+                                        style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade700, fontStyle: FontStyle.italic),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -319,7 +327,21 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                     child: Text('Funds Received. Set Start Time', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                                   ),
                                 ),
-                              if (b['status'] == 'paid' && hasStartTime && !(b['operator_completed'] == true))
+                              if (b['status'] == 'paid' && hasStartTime)
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: ElevatedButton(
+                                    onPressed: () => _updateStatus(b['id'], 'ongoing'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      elevation: 0,
+                                    ),
+                                    child: Text('Start Job', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                              if (b['status'] == 'ongoing' && !(b['operator_completed'] == true))
                                 SizedBox(
                                   width: double.infinity,
                                   height: 48,
@@ -347,6 +369,19 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                     },
                   ),
                 ),
+    );
+  }
+
+  Widget _buildPayoutRow(String label, String value, {Color? color, bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade600)),
+          Text(value, style: GoogleFonts.outfit(fontSize: 13, fontWeight: isBold ? FontWeight.bold : FontWeight.normal, color: color ?? Colors.black87)),
+        ],
+      ),
     );
   }
 }

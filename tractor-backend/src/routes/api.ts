@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { register, login } from '../controllers/authController';
-import { updateProfile } from '../controllers/userController';
+import { updateProfile, updateSettings } from '../controllers/userController';
 import { registerTractor, getAvailableTractors, updateTractorStatus, getMyTractors } from '../controllers/tractorController';
 import { createBooking, getFarmerBookings, getOperatorBookings, updateBookingStatus, updateBookingStartTime } from '../controllers/bookingController';
 import { initiateStkPush, mpesaCallback, getPaymentStatus, verifyPayment } from '../controllers/paymentController';
@@ -33,6 +33,7 @@ const router = Router();
 router.post('/auth/register', register);
 router.post('/auth/login', login);
 router.put('/users/profile', authenticateToken, updateProfile);
+router.put('/users/settings', authenticateToken, updateSettings);
 router.post('/support/message', authenticateToken, sendMessageToAdmin);
 
 // ──────────────────────────────────────

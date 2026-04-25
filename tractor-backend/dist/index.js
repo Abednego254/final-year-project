@@ -1,29 +1,30 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import { query } from './config/db';
-
-dotenv.config();
-
-const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE']
-  }
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
+const dotenv_1 = __importDefault(require("dotenv"));
+const http_1 = require("http");
+const socket_io_1 = require("socket.io");
+const db_1 = require("./config/db");
+dotenv_1.default.config();
+const app = (0, express_1.default)();
+const httpServer = (0, http_1.createServer)(app);
+const io = new socket_io_1.Server(httpServer, {
+    cors: {
+        origin: '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
+    }
 });
-
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
+app.use((0, cors_1.default)());
+app.use(express_1.default.json());
+app.use(express_1.default.urlencoded({ extended: true }));
 // Database Initialization (Auto-migrate basic tables for development)
 const initDb = async () => {
-  const tableQueries = `
+    const tableQueries = `
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       name VARCHAR(100) NOT NULL,
@@ -62,7 +63,6 @@ const initDb = async () => {
     ALTER TABLE bookings ADD COLUMN IF NOT EXISTS estimated_start_time VARCHAR(100);
     ALTER TABLE bookings ADD COLUMN IF NOT EXISTS farmer_completed BOOLEAN DEFAULT FALSE;
     ALTER TABLE bookings ADD COLUMN IF NOT EXISTS operator_completed BOOLEAN DEFAULT FALSE;
-    ALTER TABLE bookings ADD COLUMN IF NOT EXISTS completed_at TIMESTAMP;
 
 
     CREATE TABLE IF NOT EXISTS payments (
@@ -125,76 +125,67 @@ const initDb = async () => {
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `;
-  try {
-    await query(tableQueries);
-
-    // Seed default system settings
-    await query(`
+    try {
+        await (0, db_1.query)(tableQueries);
+        // Seed default system settings
+        await (0, db_1.query)(`
       INSERT INTO system_settings (key, value)
       VALUES ('maintenance_mode', 'false'), ('two_factor_auth', 'false')
       ON CONFLICT (key) DO NOTHING
     `);
-
-    console.log('Database tables successfully verified/created');
-  } catch (err) {
-    console.error('Error creating default tables:', err);
-  }
+        console.log('Database tables successfully verified/created');
+    }
+    catch (err) {
+        console.error('Error creating default tables:', err);
+    }
 };
-
 initDb();
-
-import apiRoutes from './routes/api';
-
+const api_1 = __importDefault(require("./routes/api"));
 // Initialize Routes
-app.use('/api', apiRoutes);
-
+app.use('/api', api_1.default);
 app.get('/health', async (req, res) => {
-  try {
-    const result = await query('SELECT NOW()');
-    res.json({ status: 'ok', db_time: result.rows[0].now, message: 'Tractor API is running' });
-  } catch (error) {
-    res.status(500).json({ status: 'error', message: 'Database connection failed' });
-  }
+    try {
+        const result = await (0, db_1.query)('SELECT NOW()');
+        res.json({ status: 'ok', db_time: result.rows[0].now, message: 'Tractor API is running' });
+    }
+    catch (error) {
+        res.status(500).json({ status: 'error', message: 'Database connection failed' });
+    }
 });
-
 // Internal endpoint to emit socket events from controllers
 app.post('/api/internal/notify', (req, res) => {
-  const { event, data } = req.body;
-  if (event && data) {
-    io.emit(event, data);
-    res.json({ success: true });
-  } else {
-    res.status(400).json({ error: 'Missing event or data' });
-  }
+    const { event, data } = req.body;
+    if (event && data) {
+        io.emit(event, data);
+        res.json({ success: true });
+    }
+    else {
+        res.status(400).json({ error: 'Missing event or data' });
+    }
 });
-
 // WebSockets Implementation
 io.on('connection', (socket) => {
-  console.log('Client connected:', socket.id);
-
-  // Operators emit their live location
-  socket.on('update_location', async (data) => {
-    // data expected: { tractorId, latitude, longitude }
-    // Broadcast location to farmers observing that tractor
-    socket.broadcast.emit(`tractor_${data.tractorId}_location`, data);
-
-    // Persist the latest location to the database
-    try {
-      if (data.tractorId && data.latitude && data.longitude) {
-        await query('UPDATE tractors SET latitude = $1, longitude = $2 WHERE id = $3',
-          [data.latitude, data.longitude, data.tractorId]);
-      }
-    } catch (error) {
-      console.error('Failed to persist tractor location:', error);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
-  });
+    console.log('Client connected:', socket.id);
+    // Operators emit their live location
+    socket.on('update_location', async (data) => {
+        // data expected: { tractorId, latitude, longitude }
+        // Broadcast location to farmers observing that tractor
+        socket.broadcast.emit(`tractor_${data.tractorId}_location`, data);
+        // Persist the latest location to the database
+        try {
+            if (data.tractorId && data.latitude && data.longitude) {
+                await (0, db_1.query)('UPDATE tractors SET latitude = $1, longitude = $2 WHERE id = $3', [data.latitude, data.longitude, data.tractorId]);
+            }
+        }
+        catch (error) {
+            console.error('Failed to persist tractor location:', error);
+        }
+    });
+    socket.on('disconnect', () => {
+        console.log('Client disconnected:', socket.id);
+    });
 });
-
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
