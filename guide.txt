@@ -1,0 +1,677 @@
+P.O. Box 1100-20300,
+NYAHURURU,
+KENYA
+
+TEL: +254-(0) 20 2331509;
+Cell: +254 713-552761
+codcompinfo@laikipia.ac.ke;
+www.laikipia.ac.ke
+
+SCHOOL OF SCIENCE AND APPLIED TECHNOLOGY
+DEPARTMENT OF COMPUTING AND INFORMATICS
+BACHELOR OF SCIENCE IN COMPUTER SCIENCE
+COMP 413/424 Computer Systems Project
+COURSE TITLE: COMPUTER SYSTEMS PROJECT
+COURSE CODE: COMP 413
+CREDIT UNITS: 3.0
+PREREQUISITE: COMP 111, COMP 123, COMP 124, COMP 210, COMP 213,
+COMP 214, COMP 215, COMP 224, COMP 225, COMP 226,
+COMP 311, COMP 312, COMP 315, COMP 315, COMP 316,
+COMP 322, COMP 336
+Purpose
+To provide the learner with the opportunity to apply knowledge obtained to the solution of
+practical problems
+Objectives
+By the end of this course unit, the learners should be able to:
+1. Identify different areas where applications software can be applied.
+2. Plan, specify, design, implement and test a practical system to meet users' requirements.
+3. Write software documentation.
+Course Content
+Learners work with the instructor in specifying, designing and implementing a "real world" project.
+Designed system useable by a department in the University. The unit runs for two semesters: Student
+develops the idea and presents a proposal in the first semester. Develop the actual project in the second
+semester. Student to present a complete project report at the end of the semester II.
+Teaching Methodologies
+Lectures, tutorials, supervised laboratory practical’s and learners individual lab research.
+Instructional Materials/Equipment
+Computers with necessary software’s, Whiteboard markers, Textbooks, Flip Charts, Projectors Course
+assessment
+Type of Assessment Weighting
+Proposal
+20%
+Presentation
+40%
+Documentation 40%
+Total
+100%
+
+1
+
+APPENDIX I: WRITING GUIDELINES
+1.1 Quality Requirements of Research Projects
+The postgraduate level project demonstrates the student’s readiness to join the community of
+scholars and practitioners in advancing the knowledge and practice in the real world of
+business. Consequently, students are expected to produce quality research projects:
+i) Make contributions to the knowledge in the discipline,
+ii) Address current problems of interest to the practitioners,
+iii) Demonstrate a mastery of a specialization area within the program of study
+iv) Reflect the integration of practice and scholarship, and
+v) Are of publishable quality.
+
+1.2 Research Project
+1.2.1 The concept paper
+Before writing proposal write a concept paper
+The concept paper should be structured under the following headings:
+i) Introduction/Background/Problem statement
+a) Rationale
+ii) Aims and objectives
+iii) Conceptual framework
+iv) Method
+a) Proposed source of data
+b) Method of data collection/Instruments
+c) Method of analysis
+v) Contribution to knowledge/originality concept papers should in the overall demonstrate
+mastery of the subject area and research methodology
+
+2
+
+The concept paper should not exceed 2500 words or 5 pages. While academic-style referencing
+is required (APA style), references are included in the final word count and should therefore be
+used strategically.
+A concept paper is evaluated along the following four key dimensions:
+i) Does the candidate present a set of overarching aims and objectives and research
+questions that focus and guide the study?
+ii) Does the candidate show evidence of understanding the theory in the area in which
+she/he wish to conduct their study?
+iii) Is the candidate able to fully conceptualize the problem
+iv) Does the candidate demonstrate a clear understanding of the methods (including data
+sources, research instruments and methods of analysis) selected to respond to the aims,
+objectives and key research questions outlined in the study?
+v) Is the study original and substantive enough for consideration at the study level of
+study? or does the student does the student demonstrate mastery of the subject area and
+research methodology?
+
+1.2.2 The Research Proposal
+After successful evaluation of a concept paper, the department expects each candidate to
+develop a research proposal for the intended research. The research proposal is a blueprint or
+a plan for an intended study. Research proposal preparation is essential in the development and
+pursuit of a research endeavor. The quality of the final research project often depends on the
+quality of the research proposal. Consequently, each student must develop a comprehensive
+research proposal before submission for oral presentation.
+Size of Research Proposals
+i) A project research proposal should not exceed 25 double spaced pages excluding
+appendices
+ii) The research proposal should not exceed 35 double spaced pages excluding
+appendices.
+
+3
+
+The Format of the Proposal
+Preliminary pages
+The research proposal preliminary pages shall include the following:
+i) Title page
+ii) Declaration
+iii) Dedication
+iv) Acknowledgement
+v) Table of contents
+vi) List of tables
+vii) List of figures
+viii)
+
+List of Appendices
+
+ix) Abbreviation and Acronyms
+x) Abstract
+
+The main body
+The main body of the proposal shall normally include the following:
+i) Chapter One: Introduction
+ii) Chapter Two: Literature review
+iii) Chapter Three: Methodology
+iv) References
+v) Appendices:
+a) Data collection instruments
+b) Research schedule (work plan)
+c) Research budget
+d) Any other relevant support documents
+
+Note: The contents of these sections of the proposal are described under the Project report.
+The difference in the contents is in the style of writing the contents in the proposal are written in
+future tense while those in the projected report are written in past tense
+
+1.3 Research Project report
+4
+
+Project writing should conform to the Computing and Informatics Departmental format as
+stated below:
+1.3.1 General Requirements
+(i) Typing of report
+A Report must be type-written or printed on an A4 size, 80 gram bond paper. Computer /laser
+printed material must be of good quality. There must be consistency in the typeface using times
+new roman font and font size 12. The report shall be typed with double spacing using of clear
+UK English language.
+(ii) Margins and pagination
+There must be a 40mm (1.5 inches) margin on the left hand side to allow for binding, and a
+25mm (1 inch) margin on the right hand side, top and bottom of the paper. Preliminary pages
+such as table of contents, list of tables and figures that precede the first page of text shall be
+numbered using small roman numerals. Pages of the main report shall be numbered
+consecutively in arabic numerals, starting with the first page of text and the number shall appear
+in the centre of the lower margin of the page.
+
+7.3.2 The format
+The research project report comprises of the following sections:
+Preliminary pages
+The research proposal preliminary pages shall include the following:
+i) Title page
+ii) Declaration
+iii) Dedication
+iv) Acknowledgement
+v) Table of contents
+vi) List of tables
+vii) List of figures
+viii)
+
+List of Appendices
+
+ix) Abbreviation and Acronyms
+x) Abstract
+
+The main body
+The main body of the project report shall normally include the following:
+
+5
+
+i) Chapter One: Introduction
+ii) Chapter Two: Literature review
+iii) Chapter Three: Research Methodology
+iv) Chapter Four: Data Analysis Findings and Interpretation
+v) Chapter Five: Discussions Summary and Conclusions
+vi) References
+vii) Appendices:
+a) Data collection instruments
+b) Any other relevant support documents
+
+1.3.2.1 Preliminary pages
+i) Spine
+The spine shall be embossed in gold with the candidate’s surname and initials, the abbreviation
+of the degree for which it has been submitted and the year. The writing shall be from bottom
+of the spine to top. Report is bound in Green for Master and in Grey for PhD. The face of
+hardcover shall be plain.
+
+ii) Title Page
+This should bear the title of the report in capital letters (21words max), followed below by the
+full name of the student. This is followed by a statement as follows “A REPORT
+SUBMITTED TO THE COMPUTING AND INFORMATICS DEPARTMENTAL IN
+PARTIAL FULFILLMENT OF THE REQUIREMENTS FOR THE AWARD OF THE
+DEGREE OF (NAME OF THE
+DEGREE) , LAIKIPIA UNIVERSITY” in the middle of the page. Finally, the month and
+the year of submission at the bottom and centered
+
+Title is a concise statement of the main topic and should identify the variables.
+i)
+
+Should reflect the contents of the document.
+
+ii)
+
+Fully explanatory when standing alone.
+
+iii)
+
+Abbreviations should not appear in title.
+
+6
+
+Example of Title Page
+
+REVENUE DIVERSIFICATION AND COST CONTAINMENT STRAGETIES IN
+KENYAN PUBLIC UNIVERSITIES
+
+ALEX KIBET
+
+A RESEARCH PROPOSAL/REPORT SUBMITTED TO THE COMPUTING AND
+INFORMATICS DEPARTMENTAL IN PARTIAL FULFILMENT FOR THE
+AWARD OF THE DEGREE OF BACHELOR OF COMPUTER SCIENCE,
+LAIKIPIA UNIVERSITY
+
+FEBRUARY, 2025
+
+iii) Declaration
+It should include both the candidate’s and the supervisor’s declaration duly signed. It should
+begin with the declaration by the candidate followed by the declaration by the supervisors as
+shown below:
+
+Declaration by the candidate
+This proposal/Project report is my original work and has not been presented for award of a
+degree in any other University or for any other award
+………………………….
+
+………………………………
+
+Signature
+
+Date
+
+Name of candidate and Reg. Number
+
+Declaration by the supervisors
+I/We confirm that the work reported in this proposal/thesis was carried out by the candidate
+under our supervision and has been submitted with our approval as university supervisors
+……………………………………
+
+………………………………
+
+Signature
+
+Date
+
+Name of supervisor, department, school and university
+
+7
+
+……………………………………
+
+………………………………
+
+Signature
+
+Date
+
+Name of supervisor, department, school and university
+
+iv) Dedication (optional)
+A dedication statement not exceeding 25 words may follow the declaration, beginning on a
+separate page.
+
+v) Acknowledgment
+Acknowledgment not exceeding 150 words should follow dedication beginning on a separate
+page. You should acknowledge supervisors and anyone who made a significant contribution to
+your research technically (including materials, supplies), intellectually (assistance, advice) and
+financially (research funding, travel grants etc)
+
+vi) Table of Contents
+A table of contents should follow acknowledgement, beginning on a new page. It is a synopsis
+of the structural pattern of the thesis. It contains all major sections i.e. chapter level headings.
+If the thesis is long, subheadings may be included. The wording and presentation (i.e.
+capitalization, use of special fonts and characters etc.) for all entries in the table of contents
+must match exactly with the text. All entries must have a corresponding page number with
+leader dots or dashes connecting the entry to the page number.
+
+vii) List of Tables
+A list of tables should follow the table of contents, beginning on a separate page specifying the
+title and the page where tables can be found in the thesis. All entries must contain a
+corresponding page number with lead dots or dashes connecting the entry to the page number.
+
+viii)
+
+List of Figures
+
+A list of figures should be on a separate page immediately after the list of tables. This should
+capture the title and page number of the figure where figure is found. The numbering style
+should be two numbers level. Titles of figures should be placed below the figure
+
+8
+
+Define terms in the text that are not common but as used in the study. Note that only uncommon
+terms key to the study are defined.
+ix) List of abbreviations and acronyms(optional)
+All symbols, abbreviations and technical terms in the thesis should be listed on this page and
+their full interpretations, and the units where appropriate given.
+x) Abstract
+The purpose of the abstract is to provide a clear and concise summary thesis. It is a brief
+statement of the problem, objectives of the study, target population, sampling technique,
+sample size, instruments, data collection, data processing and analysis, key findings and major
+recommendations. The abstract is required for all research projects. The abstract should have a
+maximum of 500 words. It should be prepared after the three chapters of the proposal or the
+six chapters of the project/thesis. The abstract is usually a one block (single paragraph), single
+spaced and without citations.
+
+1.3.2.2 Main body of the research report/thesis
+i) Chapter One: Introduction
+This chapter should have the following sections:
+
+Background of the study
+In this section, the researcher describes the context of the study by providing a brief discussion
+of the genesis of the problem, starting with the global perspective followed by the local
+scenario. Trends related to the problem, unresolved issues and social concerns are discussed.
+Statement of the problem
+The problem statement describes the need for the research study in terms of the knowledge gap
+to be filled. The researcher should present a clear and precise statement that indicates the gap
+that previous research studies have not addressed. The length of the problem statement should
+not exceed 1 page
+Objectives of the study
+The general objective- This is the purpose/goal statement which should emphasize practical
+outcomes of the study and should be directly linked to the title of the study.
+
+9
+
+The specific objectives – these have to be in line with the variables the candidate hypothesizes
+to influence the phenomena being investigated. It should be a breakdown of the general
+objective.
+Hypothesis/Research Questions
+They should be in line with the specific objectives. Research questions should be stated in
+the form of questions and not statements. Hypotheses when used should be stated in the null.
+Significance of the study
+The significance of the study is concerned with the relevance of the problem both to the
+practice and theory. That is, does who benefits from the study findings and how
+Scope of the study
+This is the kind of a caveat. It should indicate the focus of the study, geographical area or target
+group/population/depth of focus in concepts or variables enable the reader to make judgment
+about the generalizability of the findings and the time context.
+
+Limitation of the study
+This describes the caveat on generalizability of the study findings. The limitations should
+NOT be stated in terms of time or financial resources constraints.
+
+Definition of key terms
+These sections define the key terms as used in the study. The intention of the section is not to
+have definitions of terms whose meanings are already known. Define only the key terms used
+in the study whose meaning departs from the conventional usage.
+
+ii) Chapter Two: Literature review
+Literature review is a critical look at the existing research that is significant to your project.
+This chapter should include the following sections:
+Introduction
+This is an overview of contents of the chapter which should be very brief and precise.
+Empirical Review (Should be organized around the study objectives/variables)
+The literature review section should therefore be organized or categorized according to the
+research questions or specific objectives in order to ensure relevance to the research problem.
+You should evaluate what has already been done, show the relationships between different
+
+10
+
+works, and show how it relates to your project. The style of reviewing should address the
+following:
+a) Refer to work by recognized experts in your chosen area
+b) Consider and discuss work that supports and work that opposes your ideas
+c) Make reasoned judgments regarding the value of others’ work to your research
+d) Support your arguments with valid evidence in a logical manner
+e) Distinguish clearly between facts and opinions
+f) Ensure the review is done chronologically
+g) The hypothesized variables should be subheadings of the literature review to form a
+framework that would help in analysis.
+h) It is not supposed to be just a summary of other people's work but critique of the existing
+literature relevant of the study. Review and critique any previous studies. For the review
+to be critical, you will need to develop critical judgment.
+i)
+
+Indicate what has been done by other researchers including the methodologies used
+and identify the emerging Research gaps.
+
+Theoretical review (Should be organized around the key issues identified in the preceding
+section)
+This section should discuss current/relevant theory that supports the research problem being
+studied. Every variable should be anchored on the relevant theory(ies). For example in a
+finance problem related to capital structure, the underlying theory relevant to your project
+may include the following: “The Modigliani and Miller theorem, The trade-off theory, Static
+trade off theory, The pecking order theory, The market timing theory, Net Income Approach”
+Note: It is not expected that the subheadings “Empirical and Theoretical review” will
+appear in this section. Rather the subheading will be guided by the study objectives.
+
+Conceptual framework
+This is a visual/diagrammatic representation of the relationship between the variables under
+study. It is informed by the empirical and theoretical review and should demonstrate an
+understanding of what variable influences what.
+This section should begin with a brief introduction and explanation of the relationships depicted
+in the framework. The introduction is then followed by the presentation of the
+
+11
+
+framework. An explanation of how the framework will be used in the study should then
+follow.
+
+Summary
+Begin with a prelude of the facts established which serve as the basis for research gaps to be
+pursued. Ensure connection/flow to the next chapter.
+
+iii) Chapter Three: Methodology
+The section should provide description of the methods and procedures to be used in
+conducting the study. Conventionally, this chapter has the following sections:
+
+Introduction
+It is important to start this chapter with an overview of contents of the chapter. This should be
+very brief and precise.
+
+Research philosophy
+Describe the research philosophy upon which the study is anchored.
+
+Research design
+In this section, the researcher should identify and provide justification for the specific research
+design(s) or strategy(ies) used in carrying out the study. The section should emphasize on
+management and control of variance, justification of strategy(ies) selected, their merits and
+demerits. The researcher should include the procedures used to examine the variables and steps
+taken to control for extraneous influences that might threaten the findings of the study.
+
+Study Area
+Describe the study area and the justifications for its choice.
+
+Target population
+The researcher should identify and describe the characteristics of the population involved in
+the study. Population refers to the entire group of people, events, or things of interest that the
+
+12
+
+researcher wishes to investigate. Target population forms a basis from which the sample or
+subjects for the study is drawn. Clearly identify the population, its size and characteristics.
+Justify the choice of the target population. Where necessary provide the Sampling frame in the
+form of a table.
+
+Sampling design
+In this section, detailed description of the sample size determination and sampling method
+should be provided. Conventionally probability sampling techniques are used to ensure fair
+representation and generalization of finding to the general population. Typical examples of
+probability sampling include simple random sampling, systematic sampling, stratified random
+sampling and cluster sampling.
+
+Data collection
+The researcher is supposed to discuss the type and source of data which will be collected. This
+should be followed by the instruments to be used to collect the data.
+
+The researcher should justify the chosen methods for collecting data. A description of the
+instruments should be given, whether they are developed by the researcher or standardized
+instruments. It is worth noting that for primary data the researcher can use more than one
+instrument, in such a case s/he should justify why more than one method is used. The section
+should also discuss how the validity and reliability of the data collection instruments have been
+addressed.
+
+Once the data collection instruments have been developed and their validity and reliability
+assured, the researcher should discuss the step-by-step method of administering the data
+collection instruments. Issues related to research permits; research assistants should also be
+discussed. Finally, the research should state the approximate time and the period (dates) of
+collecting the data.
+
+Data analysis and presentation
+This section addresses the measurement of variables, analysis of data, hypothesis testing
+and/or modeling.
+Measurement of variables
+
+13
+
+The criteria of measurement to be used and the hypothesized direction should be given. It
+should sequenced as per the objectives and summarized in a table format as shown below:
+
+Objectiv
+
+Variabl
+
+e
+
+e
+
+Type
+
+Operationalizati
+
+Operation
+
+Measureme
+
+Hypothesize
+
+on
+
+al
+
+nt
+
+d direction
+
+definition
+of variable
+1
+
+Market
+
+Depende
+
+Market value of MPS is the Direct
+
+Increase
+
+value
+
+nt
+
+equity is taken as turnover
+
+with
+
+of
+
+variable
+
+Market Price per
+
+per
+
+increased
+
+Share (MPS)
+
+counter
+
+investor
+
+divided by
+
+base
+
+equity
+
+measure
+
+shares
+traded
+
+at
+
+the end of
+each year
+2
+3
+
+Data Analysis
+This should present detailed steps of how the quantitative and qualitative data will be analyzed.
+Quantitative data should include descriptive and inferential statistics and show which of these
+will be used for which objective or hypothesis. Descriptive statistics include frequencies,
+measures of central tendencies and measures of dispersion among others. Inferential statistics
+involve measurement of relationships among the variables and differences between samples
+and thus form a basis for conclusions. Finally the section should explain how the results of data
+analysis will be presented and justify why the specific method of presentation should be used.
+The researcher is also expected to indicate the name and version of the data analysis software
+used.
+
+Empirical model and hypothesis testing
+
+14
+
+It is possible to build a mathematical model solely out of the abstract concepts. This section is
+supposed to capture the empirical model to be used in testing the research hypothesis in studies
+where empirical models are used. The candidate should justify why the chosen model fits his
+or her study.
+
+iv) Chapter Four:
+Data analysis, presentation and interpretation
+This section describes all appropriate information produced by the research procedures and
+statistical analyses of the finding. In presenting the results, use of tables, graphs and figures
+combined with a brief narrative may be more effective than using the narrative. State all
+significant findings in the text, referring to tables and graphs displaying all significant data. If
+the study has produced a large amount of raw data, do not present all of it in this section.
+Instead, present only the information most appropriate and relates to your research objectives
+and hypothesis. If appropriate, include your raw data in an appendix, referring to them within
+your text.
+
+The following subheadings are advisable:
+a) Introduction- summary of the structure or organization of the chapter
+b) The
+
+rest
+
+of the sub sections should be guided
+
+by the objectives/research
+
+questions/hypothesis.
+Note: The subsections should begin with a brief introduction, presentation of results followed
+by a brief interpretation.
+
+Chapter Five: Discussion of findings, conclusions and recommendations
+Introduction
+Give a brief Introduction of the structure or organization of the chapter.
+Discussion of findings
+The discussion should be a brief essay answering the following questions
+a) What are the major patterns in the observations?
+b) What are the relationships, trends and generalizations among the results?
+c) What are the exceptions to these trends, patterns or generalizations?
+d) What are the likely causes (mechanisms) underlying these patterns resulting in
+predictions?
+
+15
+
+e) Is there agreement or disagreement with previous work?
+f) What is the relationship of the present results to the original questions and
+hypotheses?
+g) What are the things we now know or understand that we didn't know or understand
+before the present work?
+h) What is the significance of the present results?
+i) Revisit the theoretical/conceptual framework
+
+The subheadings may be organized around the objectives/research questions /hypothesis of the
+study for logical flow.
+
+Conclusions
+With reference to the study objectives, draw conclusions, summarize the observations,
+interpretations and insights that have resulted from the present work. Include the broader
+implications of your findings and where appropriate, indicate remedial action to solve the
+problem.
+
+Recommendations
+Research project report/thesis should include recommendations for practice or improvement.
+Recommendations should be made from the conclusions.
+
+Suggestions for further research
+The researcher should provide suggestions for future research work based on the findings and
+conclusions generated from the study.
+
+v) References
+Use the American Psychological Association (APA) referencing style 7th edition at the time of
+publishing this document or the latest edition. APA referencing guidelines are downloadable
+from the internet.
+Agreement of text and reference list- note that this is not a bibliography, the reference cited in
+the text must appear in the reference list; conversely, each entry in the reference list must be
+cited in the text. The author must make certain that each sourcereferenced appears in both
+places and that the text citation and reference list entry are identical.
+
+16
+
+vi) Appendices:
+This should include:
+a) Research Instruments
+b) Figures and tables, including captions, should be embedded in the text and not in an
+appendix, unless they are more than 1-2 pages and are not critical to your argument.
+
+Note: Appendices should be sequenced in the order in which they appear in the text.
+
+17
+
+
