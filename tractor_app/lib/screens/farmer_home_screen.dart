@@ -7,6 +7,7 @@ import '../services/booking_service.dart';
 import '../services/review_service.dart';
 import '../services/socket_service.dart';
 import '../utils/translations.dart';
+import 'tractor_preview_map_screen.dart';
 
 class FarmerHomeScreen extends StatefulWidget {
   const FarmerHomeScreen({super.key});
@@ -450,6 +451,54 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                                           ),
                                           const SizedBox(height: 8),
                                           Text('KES 3,000 / Acre', style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.green.shade700)),
+                                          const SizedBox(height: 10),
+                                          // 📍 View Location button
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) => TractorPreviewMapScreen(
+                                                    tractorId: tractor['id'] is int
+                                                        ? tractor['id']
+                                                        : int.tryParse(tractor['id'].toString()) ?? 0,
+                                                    tractorModel: tractor['model'] ?? 'Tractor',
+                                                    operatorName: tractor['owner_name'],
+                                                    initialLat: tractor['latitude'] != null
+                                                        ? double.tryParse(tractor['latitude'].toString())
+                                                        : null,
+                                                    initialLng: tractor['longitude'] != null
+                                                        ? double.tryParse(tractor['longitude'].toString())
+                                                        : null,
+                                                    onBookNow: () => _showBookingSheet(context, tractor),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                              decoration: BoxDecoration(
+                                                color: Colors.teal.shade50,
+                                                borderRadius: BorderRadius.circular(20),
+                                                border: Border.all(color: Colors.teal.shade200),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.location_on, size: 14, color: Colors.teal.shade700),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    tractor['latitude'] != null ? 'View Location' : 'Location N/A',
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: Colors.teal.shade700,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
                                         ],
                                       ),
                                     ),

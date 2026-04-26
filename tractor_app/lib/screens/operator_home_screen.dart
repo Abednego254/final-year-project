@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../services/operator_service.dart';
 import '../services/socket_service.dart';
+import 'operator_live_tracking_screen.dart';
 
 class OperatorHomeScreen extends StatefulWidget {
   const OperatorHomeScreen({super.key});
@@ -363,7 +364,36 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                     child: Text('Start Job', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                                   ),
                                 ),
-                              if (b['status'] == 'ongoing' && !(b['operator_completed'] == true))
+                              if (b['status'] == 'ongoing' && !(b['operator_completed'] == true)) ...[
+                                SizedBox(
+                                  width: double.infinity,
+                                  height: 48,
+                                  child: ElevatedButton.icon(
+                                    icon: const Icon(Icons.location_on, color: Colors.white),
+                                    label: Text('Track Live', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => OperatorLiveTrackingScreen(
+                                            tractorId: b['tractor_id'] is int
+                                                ? b['tractor_id']
+                                                : int.tryParse(b['tractor_id'].toString()) ?? 0,
+                                            bookingId: b['id'] is int
+                                                ? b['id']
+                                                : int.tryParse(b['id'].toString()) ?? 0,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.teal,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      elevation: 0,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
                                 SizedBox(
                                   width: double.infinity,
                                   height: 48,
@@ -377,6 +407,7 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                     child: Text('Mark as Completed', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                                   ),
                                 ),
+                              ],
                               if (b['operator_completed'] == true && b['farmer_completed'] != true && b['status'] != 'completed')
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
