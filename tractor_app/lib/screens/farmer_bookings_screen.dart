@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../services/booking_service.dart';
 import '../services/payment_service.dart';
 import '../services/socket_service.dart';
+import 'farmer_live_tracking_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/translations.dart';
@@ -23,6 +24,7 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
   int? _currentUserId;
   final Map<int, DateTime> _verifyCooldowns = {};
   int? _verifyingBookingId;
+  bool _isUpdatingStatus = false; // prevents socket popup stacking on the loading dialog
 
   @override
   void initState() {
@@ -37,9 +39,12 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
         _socketService.listenToNotifications(user.id!, 'farmer', (data) {
           if (!mounted) return;
           
-          // If we are already verifying this booking, don't show a redundant pop-up
-          if (_verifyingBookingId != null && data['bookingId']?.toString() == _verifyingBookingId.toString()) {
-            _fetchBookings(); // Still refresh background data
+          // Suppress popup while a status update or payment verification is in progress —
+          // the loading dialog is already on screen and a second dialog would break the stack.
+          if (_isUpdatingStatus ||
+              (_verifyingBookingId != null &&
+                  data['bookingId']?.toString() == _verifyingBookingId.toString())) {
+            _fetchBookings();
             return;
           }
 
@@ -87,8 +92,15 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
   }
 
   Future<void> _updateStatus(int bookingId, String newStatus) async {
-    // Show loading
-    showDialog(context: context, builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)), barrierDismissible: false);
+    // Raise the flag BEFORE showing the dialog so the socket listener knows
+    // not to push a second dialog while this one is open.
+    setState(() => _isUpdatingStatus = true);
+
+    showDialog(
+      context: context,
+      builder: (_) => const Center(child: CircularProgressIndicator(color: Colors.green)),
+      barrierDismissible: false,
+    );
     
     try {
       await _bookingService.updateBookingStatus(bookingId, newStatus).timeout(const Duration(seconds: 20));
@@ -99,6 +111,7 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
       }
     } finally {
       if (mounted) {
+        setState(() => _isUpdatingStatus = false);
         Navigator.of(context, rootNavigator: true).pop(); // Always close loading
       }
     }
@@ -435,6 +448,33 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                           ],
                           if (b['status'] == 'ongoing' && !(b['farmer_completed'] == true)) ...[
                              const SizedBox(height: 16),
+                             // 🗺️ Track Tractor button
+                             SizedBox(
+                               width: double.infinity,
+                               height: 48,
+                               child: ElevatedButton.icon(
+                                 icon: const Icon(Icons.my_location, color: Colors.white),
+                                 label: Text('Track Tractor Live', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                 onPressed: () {
+                                   Navigator.push(
+                                     context,
+                                     MaterialPageRoute(
+                                       builder: (_) => FarmerLiveTrackingScreen(
+                                         tractorId: b['tractor_id'] is int ? b['tractor_id'] : int.tryParse(b['tractor_id'].toString()) ?? 0,
+                                         bookingId: b['id'] is int ? b['id'] : int.tryParse(b['id'].toString()) ?? 0,
+                                         operatorName: b['operator_name'],
+                                       ),
+                                     ),
+                                   );
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                   backgroundColor: Colors.teal,
+                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                   elevation: 0,
+                                 ),
+                               ),
+                             ),
+                             const SizedBox(height: 10),
                              if (b['operator_completed'] != true)
                                Container(
                                  padding: const EdgeInsets.all(12),

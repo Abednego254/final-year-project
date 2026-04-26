@@ -118,4 +118,31 @@ class OperatorService {
       throw Exception(jsonDecode(response.body)['message'] ?? 'Failed to update tractor status');
     }
   }
+
+  /// Saves a tractor's GPS position to the database so farmers can see
+  /// where it is even before an active job starts.
+  Future<void> updateTractorLocation(int tractorId, double latitude, double longitude) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.put(
+      Uri.parse('${ApiConstants.baseUrl}/tractors/$tractorId/location'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'latitude': latitude, 'longitude': longitude}),
+    );
+
+    if (response.statusCode != 200) {
+      // Guard against HTML error pages (e.g. 404) that cannot be JSON-decoded.
+      String errorMsg = 'Failed to update tractor location (HTTP ${response.statusCode})';
+      try {
+        errorMsg = jsonDecode(response.body)['message'] ?? errorMsg;
+      } catch (_) {
+        // Response was HTML — use the generic message above.
+      }
+      throw Exception(errorMsg);
+    }
+  }
 }
