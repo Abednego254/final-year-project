@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { register, login } from '../controllers/authController';
 import { updateProfile, updateSettings } from '../controllers/userController';
-import { registerTractor, getAvailableTractors, updateTractorStatus, getMyTractors } from '../controllers/tractorController';
+import { registerTractor, getAvailableTractors, updateTractorStatus, updateTractorLocation, getMyTractors } from '../controllers/tractorController';
 import { createBooking, getFarmerBookings, getOperatorBookings, updateBookingStatus, updateBookingStartTime } from '../controllers/bookingController';
 import { initiateStkPush, mpesaCallback, getPaymentStatus, verifyPayment } from '../controllers/paymentController';
 import { submitReview, getOperatorReviews } from '../controllers/reviewController';
@@ -49,6 +49,7 @@ router.get('/tractors/available', authenticateToken, checkMaintenanceMode, getAv
 router.get('/tractors/my-tractors', authenticateToken, checkMaintenanceMode, requireRole('operator'), getMyTractors);
 router.post('/tractors', authenticateToken, checkMaintenanceMode, requireRole('operator'), registerTractor);
 router.put('/tractors/:id/status', authenticateToken, checkMaintenanceMode, requireRole('operator'), updateTractorStatus);
+router.put('/tractors/:id/location', authenticateToken, checkMaintenanceMode, requireRole('operator'), updateTractorLocation);
 
 // ──────────────────────────────────────
 // BOOKING ROUTES

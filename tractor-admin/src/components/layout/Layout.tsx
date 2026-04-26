@@ -11,7 +11,8 @@ import {
     HandCoins,
     Users,
     LogOut,
-    ChevronDown
+    ChevronDown,
+    Map,
 } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
@@ -41,6 +42,7 @@ const Layout = () => {
         { name: 'Transactions', href: '/transactions', icon: HandCoins },
         { name: 'Support', href: '/messages', icon: MessageSquare },
         { name: 'Settings', href: '/settings', icon: Settings },
+        { name: 'Live Map', href: '/live-map', icon: Map },
     ];
 
     return (

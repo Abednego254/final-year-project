@@ -9,6 +9,7 @@ import SupportMessages from './pages/Messages';
 import Transactions from './pages/Transactions';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import LiveMap from './pages/LiveMap';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -39,6 +40,7 @@ function AppRoutes() {
         <Route path="messages" element={<SupportMessages />} />
         <Route path="transactions" element={<Transactions />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="live-map" element={<LiveMap />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

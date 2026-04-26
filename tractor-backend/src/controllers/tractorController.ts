@@ -28,7 +28,9 @@ export const registerTractor = async (req: AuthRequest, res: Response): Promise<
 export const getAvailableTractors = async (req: AuthRequest, res: Response): Promise<void> => {
     try {
         const result = await query(`
-      SELECT t.id, t.model, t.license_plate, t.status, u.id as owner_id, u.name as owner_name, u.phone as owner_phone 
+      SELECT t.id, t.model, t.license_plate, t.status,
+             t.latitude, t.longitude,
+             u.id as owner_id, u.name as owner_name, u.phone as owner_phone 
       FROM tractors t 
       JOIN users u ON t.owner_id = u.id 
       WHERE t.status = 'available'
@@ -63,7 +65,7 @@ export const getMyTractors = async (req: AuthRequest, res: Response): Promise<vo
 
 export const updateTractorStatus = async (req: AuthRequest, res: Response): Promise<void> => {
     const { id } = req.params;
-    const { status } = req.body; // 'available', 'busy', 'maintenance'
+    const { status } = req.body;
     const owner_id = req.user?.id;
 
     if (!['available', 'busy', 'maintenance'].includes(status)) {
@@ -87,5 +89,35 @@ export const updateTractorStatus = async (req: AuthRequest, res: Response): Prom
     } catch (error) {
         console.error('Update tractor status error:', error);
         res.status(500).json({ message: 'Server error updating tractor.' });
+    }
+};
+
+export const updateTractorLocation = async (req: AuthRequest, res: Response): Promise<void> => {
+    const { id } = req.params;
+    const { latitude, longitude } = req.body;
+    const owner_id = req.user?.id;
+
+    if (latitude === undefined || longitude === undefined) {
+        res.status(400).json({ message: 'latitude and longitude are required.' });
+        return;
+    }
+
+    try {
+        // Ensure the tractor belongs to the requesting operator
+        const check = await query('SELECT * FROM tractors WHERE id = $1 AND owner_id = $2', [id, owner_id]);
+        if (check.rows.length === 0) {
+            res.status(404).json({ message: 'Tractor not found or unauthorized.' });
+            return;
+        }
+
+        const result = await query(
+            'UPDATE tractors SET latitude = $1, longitude = $2 WHERE id = $3 RETURNING *',
+            [latitude, longitude, id]
+        );
+
+        res.json({ tractor: result.rows[0], message: 'Tractor location updated successfully.' });
+    } catch (error) {
+        console.error('Update tractor location error:', error);
+        res.status(500).json({ message: 'Server error updating tractor location.' });
     }
 };
