@@ -7,7 +7,9 @@ import '../services/booking_service.dart';
 import '../services/review_service.dart';
 import '../services/socket_service.dart';
 import '../utils/translations.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'tractor_preview_map_screen.dart';
+import 'farm_location_picker_screen.dart';
 
 class FarmerHomeScreen extends StatefulWidget {
   const FarmerHomeScreen({super.key});
@@ -26,6 +28,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
   double _acres = 1.0;
   DateTime _scheduledDate = DateTime.now().add(const Duration(days: 1));
   bool _isBooking = false;
+  LatLng? _farmLocation;
 
   @override
   void initState() {
@@ -84,6 +87,7 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
     _selectedTractorId = tractor['id'];
     _acres = 1.0;
     _scheduledDate = DateTime.now().add(const Duration(days: 1));
+    _farmLocation = null;
 
     showModalBottomSheet(
       context: context,
@@ -251,6 +255,27 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                        },
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                       title: Text('Farm Location (Optional)', style: GoogleFonts.inter(fontSize: 14, color: Colors.grey.shade600)),
+                       subtitle: Text(_farmLocation != null ? 'Location Selected' : 'Not set (Call for directions)', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: _farmLocation != null ? Colors.green : Colors.black87)),
+                       trailing: Icon(_farmLocation != null ? Icons.check_circle : Icons.map, color: _farmLocation != null ? Colors.green : Colors.blue),
+                       onTap: () async {
+                         final LatLng? result = await Navigator.push(
+                           context,
+                           MaterialPageRoute(builder: (context) => const FarmLocationPickerScreen()),
+                         );
+                         if (result != null) {
+                           setModalState(() => _farmLocation = result);
+                         }
+                       },
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -278,6 +303,8 @@ class _FarmerHomeScreenState extends State<FarmerHomeScreen> {
                                   _selectedTractorId!,
                                   _scheduledDate.toIso8601String(),
                                   estimatedPrice,
+                                  farmLatitude: _farmLocation?.latitude,
+                                  farmLongitude: _farmLocation?.longitude,
                                 );
                                 if (mounted) {
                                   Navigator.pop(ctx);

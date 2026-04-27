@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../services/socket_service.dart';
+import '../services/location_broadcast_service.dart';
 
 /// Shown when an operator presses "Start Job".
 /// Opens a Google Map centred on the operator's current GPS position,
@@ -12,11 +13,15 @@ import '../services/socket_service.dart';
 class OperatorLiveTrackingScreen extends StatefulWidget {
   final int tractorId;
   final int bookingId;
+  final double? farmLatitude;
+  final double? farmLongitude;
 
   const OperatorLiveTrackingScreen({
     super.key,
     required this.tractorId,
     required this.bookingId,
+    this.farmLatitude,
+    this.farmLongitude,
   });
 
   @override
@@ -27,6 +32,7 @@ class OperatorLiveTrackingScreen extends StatefulWidget {
 class _OperatorLiveTrackingScreenState
     extends State<OperatorLiveTrackingScreen> {
   final SocketService _socketService = SocketService();
+  final LocationBroadcastService _broadcastService = LocationBroadcastService();
   final Completer<GoogleMapController> _mapController = Completer();
   StreamSubscription<Position>? _positionStream;
 
@@ -40,12 +46,13 @@ class _OperatorLiveTrackingScreenState
   @override
   void initState() {
     super.initState();
+    _isBroadcasting = _broadcastService.isBroadcasting;
     _initLocation();
   }
 
   @override
   void dispose() {
-    _stopTracking();
+    _positionStream?.cancel();
     super.dispose();
   }
 
@@ -88,6 +95,7 @@ class _OperatorLiveTrackingScreenState
 
   void _startTracking() {
     setState(() => _isBroadcasting = true);
+    _broadcastService.startBroadcasting(widget.tractorId);
 
     const LocationSettings settings = LocationSettings(
       accuracy: LocationAccuracy.high,
@@ -98,10 +106,6 @@ class _OperatorLiveTrackingScreenState
         Geolocator.getPositionStream(locationSettings: settings).listen(
       (Position pos) async {
         final latLng = LatLng(pos.latitude, pos.longitude);
-
-        // Emit to backend.
-        _socketService.emitLocation(
-            widget.tractorId, pos.latitude, pos.longitude);
 
         if (!mounted) return;
         setState(() => _currentPosition = latLng);
@@ -116,7 +120,7 @@ class _OperatorLiveTrackingScreenState
   Future<void> _stopTracking() async {
     await _positionStream?.cancel();
     _positionStream = null;
-    await _socketService.stopBroadcastingLocation();
+    await _broadcastService.stopBroadcasting();
     if (mounted) setState(() => _isBroadcasting = false);
   }
 
@@ -188,6 +192,16 @@ class _OperatorLiveTrackingScreenState
                           title: 'Tractor #${widget.tractorId}',
                           snippet: 'Your current position'),
                     ),
+                    if (widget.farmLatitude != null && widget.farmLongitude != null)
+                      Marker(
+                        markerId: const MarkerId('farm'),
+                        position: LatLng(widget.farmLatitude!, widget.farmLongitude!),
+                        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+                        infoWindow: const InfoWindow(
+                          title: 'Farm Location',
+                          snippet: 'Destination',
+                        ),
+                      ),
                   },
                 ),
                 // Bottom action card

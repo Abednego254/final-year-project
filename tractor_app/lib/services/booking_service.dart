@@ -4,9 +4,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'api_constants.dart';
 
 class BookingService {
-  Future<Map<String, dynamic>> createBooking(int tractorId, String scheduledDate, double price) async {
+  Future<Map<String, dynamic>> createBooking(int tractorId, String scheduledDate, double price, {double? farmLatitude, double? farmLongitude}) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
+
+    final Map<String, dynamic> body = {
+      'tractor_id': tractorId,
+      'scheduled_date': scheduledDate,
+      'price': price,
+    };
+
+    if (farmLatitude != null && farmLongitude != null) {
+      body['farm_latitude'] = farmLatitude;
+      body['farm_longitude'] = farmLongitude;
+    }
 
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}/bookings'),
@@ -14,11 +25,7 @@ class BookingService {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
       },
-      body: jsonEncode({
-        'tractor_id': tractorId,
-        'scheduled_date': scheduledDate,
-        'price': price,
-      }),
+      body: jsonEncode(body),
     );
 
     if (response.statusCode == 201) {
