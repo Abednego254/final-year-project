@@ -463,6 +463,8 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                                          tractorId: b['tractor_id'] is int ? b['tractor_id'] : int.tryParse(b['tractor_id'].toString()) ?? 0,
                                          bookingId: b['id'] is int ? b['id'] : int.tryParse(b['id'].toString()) ?? 0,
                                          operatorName: b['operator_name'],
+                                         farmLatitude: b['farm_latitude'] != null ? double.tryParse(b['farm_latitude'].toString()) : null,
+                                         farmLongitude: b['farm_longitude'] != null ? double.tryParse(b['farm_longitude'].toString()) : null,
                                        ),
                                      ),
                                    );
@@ -522,12 +524,40 @@ class _FarmerBookingsScreenState extends State<FarmerBookingsScreen> {
                                ),
                                child: Row(
                                  children: [
-                                   Icon(Icons.access_time, color: Colors.blue.shade600),
+                                   Icon(Icons.directions_car, color: Colors.blue.shade600),
                                    const SizedBox(width: 8),
-                                   Expanded(child: Text('Payment confirmed. Waiting for the operator to start the job.', style: GoogleFonts.inter(color: Colors.blue.shade800))),
+                                   Expanded(child: Text('Operator is on the way! Estimated start time is set.', style: GoogleFonts.inter(color: Colors.blue.shade800))),
                                  ]
                                )
-                             )
+                             ),
+                             const SizedBox(height: 16),
+                             SizedBox(
+                               width: double.infinity,
+                               height: 48,
+                               child: ElevatedButton.icon(
+                                 icon: const Icon(Icons.my_location, color: Colors.white),
+                                 label: Text('Track Tractor Live', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
+                                 onPressed: () {
+                                   Navigator.push(
+                                     context,
+                                     MaterialPageRoute(
+                                       builder: (_) => FarmerLiveTrackingScreen(
+                                         tractorId: b['tractor_id'] is int ? b['tractor_id'] : int.tryParse(b['tractor_id'].toString()) ?? 0,
+                                         bookingId: b['id'] is int ? b['id'] : int.tryParse(b['id'].toString()) ?? 0,
+                                         operatorName: b['operator_name'],
+                                         farmLatitude: b['farm_latitude'] != null ? double.tryParse(b['farm_latitude'].toString()) : null,
+                                         farmLongitude: b['farm_longitude'] != null ? double.tryParse(b['farm_longitude'].toString()) : null,
+                                       ),
+                                     ),
+                                   );
+                                 },
+                                 style: ElevatedButton.styleFrom(
+                                   backgroundColor: Colors.teal,
+                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                   elevation: 0,
+                                 ),
+                               ),
+                             ),
                           ]
                         ],
                       ),

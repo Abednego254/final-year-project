@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../services/operator_service.dart';
 import '../services/socket_service.dart';
+import '../services/location_broadcast_service.dart';
 import 'operator_live_tracking_screen.dart';
 
 class OperatorHomeScreen extends StatefulWidget {
@@ -105,7 +106,8 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
     }
   }
 
-  void _showStartTimeDialog(int bookingId) {
+  void _showStartTimeDialog(dynamic b) {
+    final int bookingId = b['id'];
     final timeController = TextEditingController();
     showDialog(
       context: context,
@@ -126,10 +128,31 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
               try {
                 await _operatorService.updateBookingStartTime(bookingId, timeController.text).timeout(const Duration(seconds: 20));
                 _fetchBookings();
+                
+                // Start broadcasting in background immediately
+                LocationBroadcastService().startBroadcasting(
+                  b['tractor_id'] is int ? b['tractor_id'] : int.tryParse(b['tractor_id'].toString()) ?? 0
+                );
+                
+                if (mounted) {
+                  Navigator.of(context, rootNavigator: true).pop(); // close loading
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => OperatorLiveTrackingScreen(
+                        tractorId: b['tractor_id'] is int ? b['tractor_id'] : int.tryParse(b['tractor_id'].toString()) ?? 0,
+                        bookingId: b['id'] is int ? b['id'] : int.tryParse(b['id'].toString()) ?? 0,
+                        farmLatitude: b['farm_latitude'] != null ? double.tryParse(b['farm_latitude'].toString()) : null,
+                        farmLongitude: b['farm_longitude'] != null ? double.tryParse(b['farm_longitude'].toString()) : null,
+                      ),
+                    ),
+                  );
+                }
               } catch (e) {
-                if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
-              } finally {
-                if (mounted) Navigator.of(context, rootNavigator: true).pop();
+                if (mounted) {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
               }
             },
             child: const Text('Save'),
@@ -341,7 +364,7 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                   width: double.infinity,
                                   height: 48,
                                   child: ElevatedButton(
-                                    onPressed: () => _showStartTimeDialog(b['id']),
+                                    onPressed: () => _showStartTimeDialog(b),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.purple,
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -364,7 +387,7 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                     child: Text('Start Job', style: GoogleFonts.inter(color: Colors.white, fontWeight: FontWeight.bold)),
                                   ),
                                 ),
-                              if (b['status'] == 'ongoing' && !(b['operator_completed'] == true)) ...[
+                              if ((b['status'] == 'ongoing' || (b['status'] == 'paid' && hasStartTime)) && !(b['operator_completed'] == true)) ...[
                                 SizedBox(
                                   width: double.infinity,
                                   height: 48,
@@ -382,6 +405,8 @@ class _OperatorHomeScreenState extends State<OperatorHomeScreen> {
                                             bookingId: b['id'] is int
                                                 ? b['id']
                                                 : int.tryParse(b['id'].toString()) ?? 0,
+                                            farmLatitude: b['farm_latitude'] != null ? double.tryParse(b['farm_latitude'].toString()) : null,
+                                            farmLongitude: b['farm_longitude'] != null ? double.tryParse(b['farm_longitude'].toString()) : null,
                                           ),
                                         ),
                                       );

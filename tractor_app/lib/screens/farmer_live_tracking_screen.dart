@@ -11,12 +11,16 @@ class FarmerLiveTrackingScreen extends StatefulWidget {
   final int tractorId;
   final int bookingId;
   final String? operatorName;
+  final double? farmLatitude;
+  final double? farmLongitude;
 
   const FarmerLiveTrackingScreen({
     super.key,
     required this.tractorId,
     required this.bookingId,
     this.operatorName,
+    this.farmLatitude,
+    this.farmLongitude,
   });
 
   @override
@@ -111,22 +115,28 @@ class _FarmerLiveTrackingScreenState extends State<FarmerLiveTrackingScreen> {
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             zoomControlsEnabled: false,
-            markers: _tractorPosition == null
-                ? {}
-                : {
-                    Marker(
-                      markerId: const MarkerId('tractor'),
-                      position: _tractorPosition!,
-                      icon: BitmapDescriptor.defaultMarkerWithHue(
-                          BitmapDescriptor.hueGreen),
-                      infoWindow: InfoWindow(
-                        title: 'Tractor #${widget.tractorId}',
-                        snippet: widget.operatorName != null
-                            ? 'Operator: ${widget.operatorName}'
-                            : 'Live position',
-                      ),
-                    ),
-                  },
+            markers: {
+              if (_tractorPosition != null)
+                Marker(
+                  markerId: const MarkerId('tractor'),
+                  position: _tractorPosition!,
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+                  infoWindow: InfoWindow(
+                    title: 'Tractor #${widget.tractorId}',
+                    snippet: widget.operatorName != null ? 'Operator: ${widget.operatorName}' : 'Live position',
+                  ),
+                ),
+              if (widget.farmLatitude != null && widget.farmLongitude != null)
+                Marker(
+                  markerId: const MarkerId('farm'),
+                  position: LatLng(widget.farmLatitude!, widget.farmLongitude!),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+                  infoWindow: const InfoWindow(
+                    title: 'Your Farm',
+                    snippet: 'Destination',
+                  ),
+                ),
+            },
           ),
           // Status card at the bottom
           Positioned(
