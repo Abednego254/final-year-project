@@ -30,7 +30,7 @@ const getMpesaToken = async (): Promise<string> => {
     const expiresIn = parseInt(response.data.expires_in || "3599", 10);
     tokenExpiryTime = Date.now() + (expiresIn * 1000);
 
-    return cachedToken;
+    return cachedToken as string;
 };
 
 // POST /api/payments/stk-push
